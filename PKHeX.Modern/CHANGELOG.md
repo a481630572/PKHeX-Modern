@@ -6,7 +6,7 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
-## Próxima versão
+## 0.4.23 — 2026-10-13
 
 ### 🔄 PKHeX atualizado
 - **Correções do PKHeX (kwsch, até 13/10):** saves de HeartGold/SoulSilver guardam a versão certa ao abrir; Dratini com ExtremeSpeed por ovo em HeartGold/SoulSilver deixa de sair ilegal; o PSS de X/Y lê todos os contatos; traduções atualizadas.

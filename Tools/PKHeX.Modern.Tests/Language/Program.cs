@@ -109,7 +109,7 @@ foreach (var version in new[] { GameVersion.SH, GameVersion.SL, GameVersion.E, G
     if (version == GameVersion.SL) { page.Tab = 10; Scan("Fashion"); }
 }
 // Editores da etapa 4: Battle Frontier, Pokétch/Pokéwalker, Pokéathlon e base secreta.
-foreach (var (version, tabs) in new (GameVersion, int[])[] { (GameVersion.E, [11, 14]), (GameVersion.Pt, [11, 12]), (GameVersion.HG, [11, 12, 13]), (GameVersion.OR, [14]) })
+foreach (var (version, tabs) in new (GameVersion, int[])[] { (GameVersion.E, [11, 14]), (GameVersion.Pt, [11, 12, 3]), (GameVersion.HG, [11, 12, 13]), (GameVersion.OR, [14, 3]), (GameVersion.Y, [3]), (GameVersion.SN, [3]), (GameVersion.BD, [3]) })
 {
     var demo = BlankSaveFile.Get(version); CoreAdapter.Activate(demo);
     var page = new GamePageViewModel((_, _, _) => System.Threading.Tasks.Task.FromResult(true), _ => { }); page.Load(demo);

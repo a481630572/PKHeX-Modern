@@ -2075,5 +2075,17 @@
   "Grande": "Large",
   "Enorme": "Huge",
   "Tamanho dos sprites": "Sprite size",
-  "No ⚙, “Tamanho dos sprites” deixa os Pokémon menores ou maiores nas caixas, no bank, no outro save e na Pokédex (Pequeno, Normal, Grande ou Enorme). Muda na hora e fica salvo; em telas grandes ou no celular, Grande e Enorme ajudam a reconhecer cada Pokémon.": "In ⚙, “Sprite size” makes Pokémon smaller or larger in the boxes, the bank, the other save and the Pokédex (Small, Normal, Large or Huge). It changes right away and is saved; on big screens or phones, Large and Huge make each Pokémon easier to recognize."
+  "No ⚙, “Tamanho dos sprites” deixa os Pokémon menores ou maiores nas caixas, no bank, no outro save e na Pokédex (Pequeno, Normal, Grande ou Enorme). Muda na hora e fica salvo; em telas grandes ou no celular, Grande e Enorme ajudam a reconhecer cada Pokémon.": "In ⚙, “Sprite size” makes Pokémon smaller or larger in the boxes, the bank, the other save and the Pokédex (Small, Normal, Large or Huge). It changes right away and is saved; on big screens or phones, Large and Huge make each Pokémon easier to recognize.",
+  "Atalhos de liberar tudo": "Unlock-all shortcuts",
+  "Jogo → Atalhos também libera de uma vez o que é chato de farmar: todos os O-Powers no nível máximo e todos os treinos do Super Training (X/Y e Omega Ruby/Alpha Sapphire), todas as Zygarde Cells com o contador atualizado (Sun/Moon e Ultra Sun/Ultra Moon), todos os itens do Grand Underground na quantidade máxima (BD/SP) e a bolsa de esferas do Underground cheia de esferas grandes (Diamond/Pearl/Platinum). Cada atalho tem desfazer; Salvar grava o arquivo.": "Game → Shortcuts also unlocks at once what is tedious to farm: every O-Power at max level and every Super Training regimen (X/Y and Omega Ruby/Alpha Sapphire), every Zygarde Cell with the counter updated (Sun/Moon and Ultra Sun/Ultra Moon), every Grand Underground item at max quantity (BD/SP) and the Underground sphere pouch full of large spheres (Diamond/Pearl/Platinum). Each shortcut can be undone; Save writes the file.",
+  "Todos os O-Powers": "All O-Powers",
+  "Libera todos os O-Powers no nível máximo (3), como o “Give All” do PKHeX.": "Unlocks every O-Power at max level (3), like PKHeX's “Give All”.",
+  "Todos os treinos do Super Training": "All Super Training regimens",
+  "Libera os 32 treinos (regimens) do Super Training e os 6 de distribuição.": "Unlocks the 32 Super Training regimens and the 6 distribution ones.",
+  "Todas as Zygarde Cells": "All Zygarde Cells",
+  "Marca as {0} Zygarde Cells do mapa como coletadas e soma no contador (para montar o Zygarde 100% com o Zygarde Cube).": "Marks the {0} Zygarde Cells on the map as collected and adds them to the counter (to assemble Zygarde 100% with the Zygarde Cube).",
+  "Itens do Grand Underground no máximo": "Grand Underground items maxed",
+  "Deixa cada item do Grand Underground (esferas, estátuas, fósseis, pedras, armadilhas...) na quantidade máxima, como o botão “All” do PKHeX.": "Sets every Grand Underground item (spheres, statues, fossils, stones, traps...) to its max quantity, like PKHeX's “All” button.",
+  "Esferas do Underground cheias": "Underground spheres full",
+  "Enche a bolsa de esferas do Underground com 40 esferas grandes de tamanho 99, dos 5 tipos (para trocar por itens com os mercadores).": "Fills the Underground sphere pouch with 40 large spheres of size 99, of the 5 kinds (to trade for items with the traders)."
 }

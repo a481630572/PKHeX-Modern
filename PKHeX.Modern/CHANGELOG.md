@@ -6,6 +6,11 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
+## Próxima versão
+
+### ⚡ Atalhos
+- **Liberar tudo:** novos atalhos na página Jogo para o que é chato de farmar: todos os O-Powers e todos os treinos do Super Training (X/Y e Omega Ruby/Alpha Sapphire), todas as Zygarde Cells (Sun/Moon e Ultra Sun/Ultra Moon), itens do Grand Underground no máximo (BD/SP) e a bolsa de esferas do Underground cheia (Diamond/Pearl/Platinum).
+
 ## 0.4.23 — 2026-10-13
 
 ### 🔄 PKHeX atualizado

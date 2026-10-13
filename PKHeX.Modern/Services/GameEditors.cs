@@ -68,7 +68,7 @@ public sealed class GameEditors
         }
         Flags = flags;
         Works = works;
-        Shortcuts = [.. Shortcuts, .. LoadCaseShortcuts(sav)];
+        Shortcuts = [.. Shortcuts, .. LoadCaseShortcuts(sav), .. LoadUnlockShortcuts(sav)];
         Fame = HallOfFame.Load(sav);
         HasFame = HallOfFame.IsSupported(sav);
         Records = LoadRecords();
@@ -339,6 +339,79 @@ public sealed class GameEditors
                         bs.Poffins.SetPoffins(all);
                     }));
                 break;
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Atalhos "liberar tudo" de coisas chatas de farmar (os botoes "Give All" do PKHeX): O-Powers e Super Training
+    /// (X/Y e Omega Ruby/Alpha Sapphire), Zygarde Cells (Sun/Moon e Ultra Sun/Ultra Moon), itens do Grand Underground
+    /// (BD/SP) e esferas do Underground (Diamond/Pearl/Platinum).
+    /// </summary>
+    private static List<GameShortcut> LoadUnlockShortcuts(SaveFile sav)
+    {
+        List<GameShortcut> list = [];
+        switch (sav)
+        {
+            case SAV6 when sav is ISaveBlock6Main main:
+                list.Add(new("Todos os O-Powers", "Libera todos os O-Powers no nível máximo (3), como o “Give All” do PKHeX.",
+                    () => Enumerable.Range(0, (int)OPower6Index.Count).Any(i => main.OPower.GetState((OPower6Index)i) != OPowerFlagState.Unlocked),
+                    () => main.OPower.UnlockAll()));
+                list.Add(new("Todos os treinos do Super Training", "Libera os 32 treinos (regimens) do Super Training e os 6 de distribuição.",
+                    () => Enumerable.Range(0, 32).Any(i => !main.SuperTrain.GetIsRegimenUnlocked(i)) || Enumerable.Range(0, 6).Any(i => !main.SuperTrain.GetIsDistributionUnlocked(i)),
+                    () => main.SuperTrain.UnlockAllStages(true)));
+                break;
+            case SAV7 s7 and (SAV7SM or SAV7USUM):
+                {
+                    var ew = s7.EventWork;
+                    int count = ew.TotalZygardeCellCount;
+                    list.Add(new("Todas as Zygarde Cells", $"Marca as {count} Zygarde Cells do mapa como coletadas e soma no contador (para montar o Zygarde 100% com o Zygarde Cube).",
+                        () => Enumerable.Range(0, count).Any(i => ew.GetZygardeCell(i) != 2),
+                        () =>
+                        {
+                            int added = 0;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (ew.GetZygardeCell(i) == 2) continue;
+                                ew.SetZygardeCell(i, 2);
+                                added++;
+                            }
+                            ew.ZygardeCellCount = (ushort)(ew.ZygardeCellCount + added);
+                            if (s7 is SAV7USUM)
+                                s7.SetRecord(72, ew.ZygardeCellCount); // Ultra Sun/Ultra Moon contam no recorde, como o PKHeX faz
+                            else
+                                ew.ZygardeCellTotal = (ushort)(ew.ZygardeCellTotal + added);
+                        }));
+                    break;
+                }
+            case SAV8BS bs:
+                list.Add(new("Itens do Grand Underground no máximo", "Deixa cada item do Grand Underground (esferas, estátuas, fósseis, pedras, armadilhas...) na quantidade máxima, como o botão “All” do PKHeX.",
+                    () => bs.Underground.ReadItems().Any(i => i.Type != UgItemType.None && i.Count < i.MaxValue),
+                    () =>
+                    {
+                        var items = bs.Underground.ReadItems();
+                        foreach (var item in items)
+                            if (item.Type != UgItemType.None)
+                                item.Count = item.MaxValue;
+                        bs.Underground.WriteItems(items);
+                    }));
+                break;
+            case SAV4Sinnoh sinnoh:
+                {
+                    const int types = 5; // esferas grandes: Prism, Pale, Red, Blue e Green (L), indices 6 a 10 de ugspheres
+                    list.Add(new("Esferas do Underground cheias", "Enche a bolsa de esferas do Underground com 40 esferas grandes de tamanho 99, dos 5 tipos (para trocar por itens com os mercadores).",
+                        () => { var sp = sinnoh.GetUGI_Spheres(); for (int i = 0; i < SAV4Sinnoh.UG_POUCH_SIZE; i++) if (sp[i] == 0 || sp[SAV4Sinnoh.UG_POUCH_SIZE + i] < 99) return true; return false; },
+                        () =>
+                        {
+                            var sp = sinnoh.GetUGI_Spheres();
+                            for (int i = 0; i < SAV4Sinnoh.UG_POUCH_SIZE; i++)
+                            {
+                                sp[i] = (byte)(6 + (i % types));
+                                sp[SAV4Sinnoh.UG_POUCH_SIZE + i] = 99;
+                            }
+                        }));
+                    break;
+                }
         }
         return list;
     }

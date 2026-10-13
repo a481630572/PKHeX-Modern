@@ -42,6 +42,14 @@ Este arquivo reúne o que o Claude sabia do projeto e do usuário (antes guardad
    `gh workflow run modern-android.yml -R carlosmozart/PKHeX-Modern --ref modern-ui -f signed_release=true -f release_tag=modern-vX.Y.Z`
 6. **Confira se a release tem os 5 arquivos:** `PKHeX.Modern-Android.apk` e os zips win-x64, linux-x64, osx-arm64 e osx-x64. Sem o APK, o celular não atualiza: aconteceu na 0.4.14. Desde a 0.4.15, o app oferece a release mais nova que tem o pacote do sistema.
 
+## Sincronizar com o upstream (kwsch/PKHeX)
+
+1. `git fetch upstream` e `git merge upstream/master` no `modern-ui`. O merge entra limpo, porque o fork não altera os projetos do upstream.
+2. **Rode o `SpriteParity`** (`run-tests.ps1 SpriteParity`, só no Windows). O `PKHeX.Modern.Sprites` é um port próprio do `PKHeX.Drawing*` (`SpriteBuilder`, `SpriteUtil`, `WallpaperUtil`, `ImageUtil`), sem System.Drawing, e não acompanha o upstream sozinho. O teste compara o port com o original byte a byte e lista cada diferença (ex.: "papel de parede DP 22: box_wp23dp x box_wp23"). Se houver diferença, copie a mudança do upstream para o arquivo equivalente em `PKHeX.Modern.Sprites/` até ele voltar a dar "TUDO OK" e todos os nomes iguais. Na 0.4.23, o upstream mudou o `WallpaperUtil` (Colosseum/XD, Battle Revolution, sufixo dp, My Wallpaper do Pokémon Box) e foi preciso portar.
+3. Vale também ao mexer no próprio port de sprites, em qualquer PC: rode o `SpriteParity` antes do commit.
+4. Rode a suíte inteira **sozinha**: duas execuções ao mesmo tempo (ou junto de outro build) compilam os mesmos projetos em paralelo e dão falhas falsas como "No precompiled XAML found".
+5. Anote no CHANGELOG, em `## Próxima versão`, uma seção "🔄 PKHeX atualizado" com o que muda para o usuário.
+
 ## Trabalho com o Codex
 
 O usuário delega levas de funções ao Codex com enunciados `TAREFA-CODEX-FUNCOES-N.md` na raiz do repositório. Depois que a leva é revisada, juntada e publicada, o enunciado, a worktree e a branch são apagados (o histórico fica no Git e no CHANGELOG).

@@ -6,6 +6,12 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
+## Próxima versão
+
+### 🔄 PKHeX atualizado
+- **Correções do PKHeX (kwsch, até 13/10):** saves de HeartGold/SoulSilver guardam a versão certa ao abrir; Dratini com ExtremeSpeed por ovo em HeartGold/SoulSilver deixa de sair ilegal; o PSS de X/Y lê todos os contatos; traduções atualizadas.
+- **Papéis de parede que faltavam:** Ruby/Sapphire e FireRed/LeafGreen com os 16, Emerald com os 17 (os de Walda), os nomes certos de cada um, as caixas de Colosseum/XD e de Battle Revolution com o papel de parede de cada caixa e o "My Wallpaper" desenhado no Pokémon Box.
+
 ## 0.4.22 — 2026-10-10
 
 ### 🎨 Aparência

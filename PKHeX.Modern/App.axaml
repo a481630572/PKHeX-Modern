@@ -2028,7 +2028,8 @@
 
   <!-- Treinador -->
   <DataTemplate DataType="vm:TrainerPageViewModel">
-    <StackPanel MaxWidth="560" HorizontalAlignment="Left" Spacing="4">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel MaxWidth="560" HorizontalAlignment="Left" Spacing="4" Margin="0,0,12,12">
       <TextBlock Text="Treinador" Classes="title" Margin="0,0,0,8" />
       <Border Classes="card">
         <StackPanel Spacing="2">
@@ -2048,6 +2049,55 @@
         <TextBlock Grid.Row="3" Text="Dinheiro" VerticalAlignment="Center" />
         <NumericUpDown Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="{Binding MaxMoney}" FormatString="N0" Value="{Binding Money}" />
       </Grid>
+      <Grid ColumnDefinitions="140,*" Margin="0,8,0,0" IsVisible="{Binding HasGender}">
+        <TextBlock Text="Gênero" VerticalAlignment="Center" />
+        <ComboBox Grid.Column="1" ItemsSource="{Binding Genders}" SelectedIndex="{Binding GenderIndex}" HorizontalAlignment="Stretch" />
+      </Grid>
+      <StackPanel IsVisible="{Binding HasCurrency}" Spacing="8">
+        <TextBlock Text="MOEDAS E BP" Classes="section" />
+        <Grid ColumnDefinitions="140,*" IsVisible="{Binding HasCoins}">
+          <TextBlock Text="Moedas" VerticalAlignment="Center" ToolTip.Tip="Fichas do Game Corner" />
+          <NumericUpDown Grid.Column="1" Minimum="0" Maximum="{Binding MaxCoins}" FormatString="N0" Value="{Binding Coins}" />
+        </Grid>
+        <Grid ColumnDefinitions="140,*" IsVisible="{Binding HasBP}">
+          <TextBlock Text="Battle Points (BP)" VerticalAlignment="Center" />
+          <NumericUpDown Grid.Column="1" Minimum="0" Maximum="9999" FormatString="0" Value="{Binding BP}" />
+        </Grid>
+      </StackPanel>
+      <StackPanel IsVisible="{Binding HasBadges}" Spacing="8">
+        <TextBlock Text="INSÍGNIAS" Classes="section" />
+        <ItemsControl ItemsSource="{Binding BadgeGroups}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BadgeGroupViewModel">
+              <Border Classes="card" Margin="0,0,0,8">
+                <StackPanel Spacing="8">
+                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Region}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Summary}" Classes="muted" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="small" Content="Todas" Command="{Binding AllCommand}" />
+                    <Button Grid.Column="2" Classes="small" Content="Nenhuma" Command="{Binding NoneCommand}" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Badges}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="4" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:BadgeViewModel"><CheckBox Content="{Binding Name}" IsChecked="{Binding Has}" /></DataTemplate></ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+      <StackPanel IsVisible="{Binding HasDates}" Spacing="8">
+        <TextBlock Text="DATAS" Classes="section" />
+        <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto" RowSpacing="8">
+          <TextBlock Text="Início da aventura" VerticalAlignment="Center" />
+          <CalendarDatePicker Grid.Column="1" SelectedDate="{Binding AdventureStart}" HorizontalAlignment="Stretch" />
+          <TextBlock Grid.Row="1" Text="Hall da Fama" VerticalAlignment="Center" />
+          <CalendarDatePicker Grid.Row="1" Grid.Column="1" SelectedDate="{Binding FameDate}" HorizontalAlignment="Stretch" />
+        </Grid>
+      </StackPanel>
       <TextBlock Text="TEMPO DE JOGO" Classes="section" />
       <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
         <NumericUpDown Minimum="0" Maximum="65535" FormatString="0" Value="{Binding Hours}" ToolTip.Tip="Horas" />
@@ -2057,6 +2107,7 @@
       <TextBlock Text="As alterações valem imediatamente; exporte o save para gravar no arquivo."
                  Classes="muted" FontSize="12" Margin="0,12,0,0" TextWrapping="Wrap" />
     </StackPanel>
+    </ScrollViewer>
   </DataTemplate>
 
   <!-- Ajuda: funcoes, novidades e sobre -->

@@ -8,6 +8,9 @@ Formato: "## versão — data", "### seção", "- item".
 
 ## Próxima versão
 
+### ♟ Treinador
+- **Insígnias, gênero, moedas, BP e datas:** a página Treinador agora edita as insígnias de cada região (Gen 1 a 6, Sword/Shield e BD/SP, com “Todas” e “Nenhuma”), o gênero do treinador, as moedas do Game Corner (Gen 1 a 4), os Battle Points (Emerald, Gen 4 a 7 e Sword/Shield) e as datas de início da aventura e do Hall da Fama (Gen 4 e 5).
+
 ### 📖 Pokédex
 - **Completar a Pokédex do save:** novo botão na página Pokédex para marcar todas as espécies como vistas e capturadas no save aberto (com formas, gêneros e idiomas onde o jogo guarda, e shiny vistos se quiser), marcar só como vistas, tirar as capturadas ou limpar tudo. Da Gen 1 ao Z-A (menos Legends: Arceus), com Ctrl+Z.
 

@@ -202,7 +202,7 @@ public sealed partial class PartyPageViewModel(Action<SlotViewModel> select) : S
     }
 }
 
-public sealed class TrainerPageViewModel : PageViewModel
+public sealed partial class TrainerPageViewModel : PageViewModel
 {
     private SaveFile? _sav;
     public override string Title => "Treinador";
@@ -211,6 +211,7 @@ public sealed class TrainerPageViewModel : PageViewModel
     public override void Load(SaveFile sav)
     {
         _sav = sav;
+        LoadExtras(sav);
         Raise(string.Empty);
     }
 

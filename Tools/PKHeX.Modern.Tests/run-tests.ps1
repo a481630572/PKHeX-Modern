@@ -15,6 +15,7 @@ $suites = [ordered]@{
     'GameStage4' = @{ 'em.sav' = 'Pokemon Emerald Version.sav'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'or.sav' = 'Omega Ruby.sav'; 'ru.sav' = 'Ruby.sav'; 'sa.sav' = 'Sapphire.sav' }
     'UnlockShortcuts' = @{ 'y.sav' = 'Pokemon Y'; 'moon.sav' = 'moon.sav'; 'um.sav' = 'Pok?mon Ultra Moon' }
     'DexComplete' = @{ 'red.sav' = 'POKEMON RED-0.sav'; 'cr.sav' = 'Pokemon Crystal Version.sav'; 'em.sav' = 'Pokemon Emerald Version.sav'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'bw.sav' = 'Pokemon - Black Version.sav'; 'y.sav' = 'Pokemon Y'; 'moon.sav' = 'moon.sav'; 'sh.sav' = 'shield'; 'sv.sav' = 'Scarlet'; 'za.sav' = 'ZA.sav' }
+    'TrainerExtras' = @{ 'red.sav' = 'POKEMON RED-0.sav'; 'cr.sav' = 'Pokemon Crystal Version.sav'; 'em.sav' = 'Pokemon Emerald Version.sav'; 'fr.sav' = 'fire red.sav'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'bw.sav' = 'Pokemon - Black Version.sav'; 'y.sav' = 'Pokemon Y'; 'or.sav' = 'Omega Ruby.sav'; 'moon.sav' = 'moon.sav'; 'sh.sav' = 'shield' }
     'Evolution' = @{}
     'BoxReport' = @{}
     'EditorAnalysis' = @{ 'sv.sav' = 'Scarlet' }

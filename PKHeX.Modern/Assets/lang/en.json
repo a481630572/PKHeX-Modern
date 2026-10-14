@@ -2121,5 +2121,14 @@
   "Desmarca todas as espécies, vistas e capturadas, na Pokédex do save aberto": "Unmarks every species, seen and caught, in the open save's Pokédex",
   "Pokédex limpa": "Pokédex cleared",
   "Salve para gravar": "Save to write it",
-  "As caixas não mudam": "The boxes don't change"
+  "As caixas não mudam": "The boxes don't change",
+  "Treinador: insígnias, gênero, moedas, BP e datas": "Trainer: badges, gender, coins, BP and dates",
+  "A página Treinador edita, além de nome, TID/SID, dinheiro e tempo de jogo: o gênero (Gen 2 no Crystal e da Gen 3 em diante); as insígnias de cada região, com “Todas” e “Nenhuma” (Gen 1 a 6, Sword/Shield e BD/SP; Gold/Silver/Crystal e HeartGold/SoulSilver têm Johto e Kanto); as moedas do Game Corner (Gen 1 a 4); os Battle Points (Emerald, Gen 4 a 7 e Sword/Shield); e, na Gen 4 e 5, as datas de início da aventura e de entrada no Hall da Fama. As alterações valem na hora; Salvar grava o arquivo.": "Besides name, TID/SID, money and play time, the Trainer page edits: gender (Gen 2 in Crystal and Gen 3 on); each region's badges, with “All” and “None” (Gen 1 to 6, Sword/Shield and BD/SP; Gold/Silver/Crystal and HeartGold/SoulSilver have Johto and Kanto); Game Corner coins (Gen 1 to 4); Battle Points (Emerald, Gen 4 to 7 and Sword/Shield); and, in Gen 4 and 5, the adventure start and Hall of Fame dates. Changes apply immediately; Save writes the file.",
+  "MOEDAS E BP": "COINS AND BP",
+  "Moedas": "Coins",
+  "Fichas do Game Corner": "Game Corner coins",
+  "INSÍGNIAS": "BADGES",
+  "DATAS": "DATES",
+  "Início da aventura": "Adventure start",
+  "Hall da Fama": "Hall of Fame"
 }

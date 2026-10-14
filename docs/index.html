@@ -6,7 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PKHeX Modern: editor de saves de Pokémon para Windows, Linux, macOS e Android</title>
-<meta name="description" content="PKHeX Modern é uma interface moderna e gratuita para o PKHeX, o editor de saves de Pokémon: modo legal, bank, Pokédex centralizada, living dex e temas. Funciona no Windows, Linux, macOS, Steam Deck e Android.">
+<meta name="description" content="PKHeX Modern é uma interface moderna e gratuita para o PKHeX, o editor de saves de Pokémon: modo legal, bank, Pokédex centralizada e completa, living dex, insígnias e temas. Funciona no Windows, Linux, macOS, Steam Deck e Android.">
 <meta name="keywords" content="PKHeX, PKHeX Modern, editor de save Pokémon, Pokémon save editor, PKHeX Android, PKHeX Linux, PKHeX macOS, PKHeX Steam Deck, living dex, Pokémon bank, legalidade Pokémon">
 <meta name="author" content="Carlos Mozart">
 <meta name="robots" content="index, follow">
@@ -164,11 +164,13 @@
       <div class="feat"><div class="ic">🛡️</div><h3>Modo legal</h3><p>O editor só oferece opções legais e legaliza com um clique, a partir de encontros reais do jogo.</p></div>
       <div class="feat"><div class="ic">🖱️</div><h3>Arrastar e soltar</h3><p>Caixas, equipe e editor lado a lado, com desfazer e refazer, seleção múltipla e busca global.</p></div>
       <div class="feat"><div class="ic">🏦</div><h3>Bank local</h3><p>Guarde Pokémon fora dos saves e leve de um jogo para outro, com conversão de geração.</p></div>
-      <div class="feat"><div class="ic">📖</div><h3>Pokédex centralizada</h3><p>Junta todos os saves e o bank: living dex, shiny dex, formas e gêneros, e um planejador que organiza as caixas.</p></div>
+      <div class="feat"><div class="ic">📖</div><h3>Pokédex centralizada</h3><p>Junta todos os saves e o bank: living dex, shiny dex, formas e gêneros, um planejador que organiza as caixas e completar a Pokédex do save com um clique.</p></div>
       <div class="feat"><div class="ic">🗂️</div><h3>Save Manager</h3><p>Todos os saves da pasta com o selo de cada jogo, saves em .zip e backup automático antes de gravar.</p></div>
       <div class="feat"><div class="ic">🌿</div><h3>Encontros e eventos</h3><p>Gere Pokémon legais a partir dos encontros e Mystery Gifts de cada jogo, inclusive os da Gen 1 a 3.</p></div>
       <div class="feat"><div class="ic">🔎</div><h3>Pesquisa e lote</h3><p>Procure em todos os saves e no bank, ache duplicados e edite ou legalize vários Pokémon de uma vez.</p></div>
-      <div class="feat"><div class="ic">🎮</div><h3>Página Jogo</h3><p>Flags de evento com nome, recordes, Hall da Fama, Battle Frontier, bases secretas e muito mais.</p></div>
+      <div class="feat"><div class="ic">🎮</div><h3>Página Jogo</h3><p>Flags de evento com nome, recordes, Hall da Fama, Battle Frontier, Pokéathlon, bases secretas e atalhos para liberar O-Powers, Super Training e Zygarde Cells.</p></div>
+      <div class="feat"><div class="ic">♟️</div><h3>Treinador completo</h3><p>Insígnias de cada região, gênero, dinheiro, moedas do Game Corner, BP, tempo de jogo e datas da aventura.</p></div>
+      <div class="feat"><div class="ic">✨</div><h3>Evolução assistida</h3><p>Todas as evoluções da espécie no jogo, com o requisito e a prévia: o app cumpre nível, item, troca ou felicidade por você.</p></div>
     </div>
   </div>
 </section>
@@ -184,6 +186,8 @@
       <figure><a href="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/encounters.png"><img loading="lazy" src="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/encounters.png" alt="Banco de encontros"></a><figcaption>Banco de encontros: onde e como cada espécie aparece</figcaption></figure>
       <figure><a href="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/bank.png"><img loading="lazy" src="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/bank.png" alt="Bank"></a><figcaption>Bank com seleção múltipla e conversão de geração</figcaption></figure>
       <figure><a href="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/savemanager.png"><img loading="lazy" src="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/savemanager.png" alt="Save Manager"></a><figcaption>Save Manager com o selo de cada jogo</figcaption></figure>
+      <figure><a href="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/trainer.png"><img loading="lazy" src="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/trainer.png" alt="Treinador com insígnias"></a><figcaption>Treinador com insígnias, BP e datas</figcaption></figure>
+      <figure><a href="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/beauty.png"><img loading="lazy" src="https://raw.githubusercontent.com/carlosmozart/PKHeX-Modern/modern-ui/PKHeX.Modern/docs/beauty.png" alt="Evolução assistida"></a><figcaption>Evolução assistida, inclusive Feebas por Beauty</figcaption></figure>
     </div>
   </div>
 </section>
@@ -237,7 +241,7 @@
 <section style="background: var(--panel)">
   <div class="wrap">
     <h2>English</h2>
-    <p class="sub" style="margin-bottom:0"><b>PKHeX Modern</b> is a modern UI for the PKHeX Pokémon save editor, running on Windows, Linux, macOS and Android. It is built on the unmodified PKHeX.Core, so save handling and legality checks match PKHeX. It includes a legal mode, drag and drop, a save manager, a local bank, a combined Pokédex, encounter and event databases and game-inspired themes. The interface is available in Portuguese and English. <a href="#download">Download it for free</a>.</p>
+    <p class="sub" style="margin-bottom:0"><b>PKHeX Modern</b> is a modern UI for the PKHeX Pokémon save editor, running on Windows, Linux, macOS and Android. It is built on the unmodified PKHeX.Core, so save handling and legality checks match PKHeX. It includes a legal mode, drag and drop, a save manager, a local bank, a combined Pokédex with one-click Pokédex completion, a full trainer editor with badges, Battle Frontier, Pokéathlon and secret base editors, encounter and event databases and game-inspired themes. The interface is available in Portuguese and English. <a href="#download">Download it for free</a>.</p>
   </div>
 </section>
 

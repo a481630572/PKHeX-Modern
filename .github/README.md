@@ -33,10 +33,11 @@ O PKHeX original é só para Windows. O PKHeX Modern roda nos quatro sistemas, s
 - **Caixas, equipe e editor lado a lado**, com arrastar e soltar, desfazer/refazer, busca global (Ctrl+F) e verificação de legalidade do save inteiro.
 - **Save Manager**: todos os saves da pasta com o selo de cada jogo, saves dentro de .zip (JKSV), backups automáticos antes de salvar e restauração.
 - **Bank local** em bancos e caixas, pastas de `.pk*` como banco e um segundo save aberto para trocar Pokémon entre jogos, com conversão de geração.
-- **Pokédex centralizada** juntando todos os saves e o bank, com living dex, shiny dex, formas e gêneros, e um **planejador de Living Dex** que organiza as caixas do save com prévia e um único desfazer.
+- **Pokédex centralizada** juntando todos os saves e o bank, com living dex, shiny dex, formas e gêneros, um **planejador de Living Dex** que organiza as caixas do save com prévia e um único desfazer, e **completar a Pokédex do save** (vistas, capturadas, formas, gêneros e idiomas) em um clique.
 - **Pesquisa em todos os saves e no bank**, com **auditoria de duplicados** (cópias idênticas, backups e anexados) e **Edição em lote** (inclusive legalizar vários de uma vez).
 - **Banco de encontros e eventos** para gerar Pokémon legais a partir de encontros reais e Mystery Gifts.
-- **Página Jogo**: flags e valores de evento com nome, recordes, atalhos de eventos (lendários de novo, itens, títulos) e Hall da Fama editável.
+- **Página Jogo**: flags e valores de evento com nome, recordes, atalhos de eventos (lendários de novo, itens, títulos), Hall da Fama editável, Battle Frontier, Pokétch e Pokéwalker, medalhas do Pokéathlon, base secreta e atalhos de **liberar tudo** (O-Powers, Super Training, Zygarde Cells, Underground).
+- **Treinador completo**: nome, TID/SID, dinheiro e tempo de jogo, mais insígnias de cada região, gênero, moedas do Game Corner, BP e datas da aventura.
 - **Evolução assistida**: uma lista com todas as evoluções da espécie no jogo (nível, item, troca, felicidade, beleza, golpe, local...), com o requisito, prévia e sem precisar de um segundo jogo.
 - **Equipe Showdown e relatório CSV**: cole ou copie a equipe ou a caixa inteira no formato Showdown e exporte o save ou o bank para planilha.
 - **Temas inspirados nos jogos** (PSS de X/Y, Pixel de GBA, Z-A, Pokédex de ORAS e Pokédex clássica de Kanto), oito cores de destaque e tamanho dos sprites ajustável.
@@ -51,6 +52,8 @@ O PKHeX original é só para Windows. O PKHeX Modern roda nos quatro sistemas, s
 | ![Save Manager](/PKHeX.Modern/docs/savemanager.png) | ![Tema Pixel](/PKHeX.Modern/docs/theme_pixel.png) |
 | **Tema ORAS (Pokédex)** | **Tema Kanto no modo claro** |
 | ![Tema ORAS](/PKHeX.Modern/docs/theme_oras.png) | ![Tema Kanto](/PKHeX.Modern/docs/theme_kanto_light.png) |
+| **Treinador com insígnias** | **Banco de encontros** |
+| ![Treinador](/PKHeX.Modern/docs/trainer.png) | ![Encontros](/PKHeX.Modern/docs/encounters.png) |
 
 **No Android**, com a mesma interface:
 
@@ -62,7 +65,7 @@ Mais capturas, a lista completa de funções, como compilar e a arquitetura est�
 
 ## English
 
-**PKHeX Modern** is a modern UI for the [PKHeX](https://github.com/kwsch/PKHeX) Pokémon save editor, running on **Windows, Linux, macOS and Android** (the original PKHeX is Windows-only). It is built on top of the unmodified `PKHeX.Core`, so save handling and legality checks are the same as PKHeX. Features include a legal mode, drag and drop between boxes and party, a save manager, a local bank, a combined Pokédex, encounter and event databases, event flag editors, an editable Hall of Fame, game-inspired themes and automatic updates. The interface is available in Portuguese and English (⚙ › Language). [Download the latest release](https://github.com/carlosmozart/PKHeX-Modern/releases/latest) or visit the [project site](https://carlosmozart.github.io/PKHeX-Modern/).
+**PKHeX Modern** is a modern UI for the [PKHeX](https://github.com/kwsch/PKHeX) Pokémon save editor, running on **Windows, Linux, macOS and Android** (the original PKHeX is Windows-only). It is built on top of the unmodified `PKHeX.Core`, so save handling and legality checks are the same as PKHeX. Features include a legal mode, drag and drop between boxes and party, a save manager, a local bank, a combined Pokédex, encounter and event databases, event flag editors, an editable Hall of Fame, Battle Frontier, Pokéathlon and secret base editors, trainer badges, one-click Pokédex completion, game-inspired themes and automatic updates. The interface is available in Portuguese and English (⚙ › Language). [Download the latest release](https://github.com/carlosmozart/PKHeX-Modern/releases/latest) or visit the [project site](https://carlosmozart.github.io/PKHeX-Modern/).
 
 ## Créditos
 

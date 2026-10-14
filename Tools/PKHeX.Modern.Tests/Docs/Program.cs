@@ -61,6 +61,8 @@ vm.SearchText = "Eevee"; vm.RunSearch(); Shot("search"); vm.SearchText = ""; vm.
 vm.CurrentPage = vm.Party; Wait(vm.SelectSlotAsync(vm.Party.Slots[0])); Shot("party");
 vm.CurrentPage = vm.Bank; vm.Bank.SelectedBank = bank; vm.Bank.Reload(); Shot("bank");
 vm.CurrentPage = vm.Pokedex; Wait(vm.Pokedex.RefreshAsync()); Shot("pokedex");
+var trainer = (TrainerPageViewModel)vm.Pages.First(p => p is TrainerPageViewModel); vm.CurrentPage = trainer;
+foreach (var b in trainer.BadgeGroups[0].Badges.Take(5)) b.Has = true; trainer.BP = 248; trainer.GenderIndex = 1; Shot("trainer");
 vm.CurrentPage = vm.Encounters; vm.Encounters.Species = "Eevee"; Wait(vm.Encounters.SearchAsync()); Shot("encounters");
 vm.Encounters.Selected = vm.Encounters.Results.First(); Shot("encounter_detail"); vm.Encounters.CloseDetailCommand.Execute(null);
 vm.CurrentPage = vm.SaveManager; Wait(vm.SaveManager.RefreshAsync()); Shot("savemanager");

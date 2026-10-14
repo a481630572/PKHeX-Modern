@@ -30,6 +30,8 @@ Todos estão na [versão mais recente](https://github.com/carlosmozart/PKHeX-Mod
 | ![Save Manager](docs/savemanager.png) | ![Modo legal](docs/legalmode.png) |
 | **Detalhes do encontro** | **Ajuda (F1)** |
 | ![Detalhes do encontro](docs/encounter_detail.png) | ![Ajuda](docs/help.png) |
+| **Treinador com insígnias** | **Evolução assistida (Feebas)** |
+| ![Treinador](docs/trainer.png) | ![Evolução](docs/beauty.png) |
 | **Fitas e memórias** | **Feebas: evolução por beleza** |
 | ![Fitas e memórias](docs/ribbons.png) | ![Evolução por beleza](docs/beauty.png) |
 | **Evolução por felicidade** | **Layout compacto** |
@@ -137,6 +139,7 @@ o download no navegador.
 - **Formas e gêneros** como entradas próprias (Vulpix de Alola, Unown A–?, Pyroar ♀...), para living dex completa.
 - **Planejador de Living Dex**: escolha o jogo alvo, formas e shiny e veja o melhor candidato de cada espécie entre saves e bank, os faltantes e outros exemplares. **Aplicar** organiza as caixas do save aberto em ordem nacional, com prévia exata (movimentos, cópias de fora, ocupantes realocados), slots protegidos respeitados e um único desfazer.
 - **Sincronizar com o save aberto**: registra na Pokédex do jogo aberto o que foi capturado nos outros saves e o que você tem guardado.
+- **Completar a Pokédex do save** (botão ✔): todas as espécies vistas e capturadas, com formas, gêneros e idiomas onde o jogo guarda (e shiny vistos, se quiser), ou só vistas, tirar as capturadas e limpar. Da Gen 1 ao Z-A (menos Legends: Arceus), com Ctrl+Z. Em Sword/Shield, Scarlet/Violet, BD/SP e Z-A vale a Pokédex regional.
 
 **Caixas e equipe**
 - Cartões grandes com sprite, nome, nível, gênero, bola, ★ shiny e ✓/⚠ de legalidade; caixas em abas no topo.
@@ -180,12 +183,22 @@ o download no navegador.
 - "Usar" gera o Pokémon no editor, pronto para gravar.
 - **Arquivo de Mystery Gift**: solte `.wc*`, `.pgf`, `.pcd` e outros formatos de evento num slot da caixa ou da equipe para gerar o Pokémon direto nele, com confirmação antes de substituir e Ctrl+Z para desfazer. Presentes de itens não entram em slots.
 
+**Página Jogo**
+- **Flags e valores de evento** com os nomes que o PKHeX conhece (Gen 1 a 7, Let's Go, BD/SP, Scarlet/Violet e Z-A), com busca, categorias e "Ativar mostradas"; **recordes** do treinador.
+- **Atalhos**: lendários e Pokémon fixos de novo, errantes, áreas do mapa, títulos, estojos cheios de Pokéblocks e Poffins, Pokéathlon e **liberar tudo** (todos os O-Powers e treinos do Super Training em X/Y e Omega Ruby/Alpha Sapphire, todas as Zygarde Cells em Sun/Moon e Ultra Sun/Ultra Moon, itens do Grand Underground no BD/SP e esferas do Underground em Diamond/Pearl/Platinum).
+- **Hall da Fama** editável, **cartões de evento** guardados, **raids**, **relógio** da Gen 3, **errantes**, **donuts** de Z-A e **roupas** de Scarlet/Violet.
+- **Battle Frontier** (Emerald, Platinum e HeartGold/SoulSilver; Battle Tower de Diamond/Pearl): BP, Frontier Pass e símbolos, impressões e as sequências de cada instalação, modo e nível.
+- **Pokétch** (aplicativos liberados e o da tela) e **Pokéwalker** (watts, passos e rotas); **medalhas do Pokéathlon** das 493 espécies.
+- **Base secreta**: dono e equipe de cada base em Ruby/Sapphire/Emerald; textos, nível, bandeiras e decorações da sua base em Omega Ruby/Alpha Sapphire, e apagar bases de outros jogadores.
+- Tudo com desfazer/refazer próprio e gravado só com Salvar.
+
 **Ajuda e atualizações**
 - Página **Ajuda** (F1 ou "❔ Ajuda e novidades"): todas as funções explicadas, com busca; **Novidades** com o changelog de cada versão; **Sobre** com a versão instalada.
 - **Atualização automática**: ao abrir, o app verifica se saiu uma versão nova no GitHub e mostra as novidades com “Atualizar agora” e “Depois”. Ao confirmar, baixa o ZIP da plataforma, confere o SHA-256 informado pelo GitHub e troca a instalação (a cópia antiga vira `.old` e é apagada na abertura seguinte). A versão nova vale ao reiniciar pelo botão 🔄 da barra lateral, que pergunta antes se houver alterações não salvas e reabre o save. Dá para desligar em Ajuda › Sobre. Vale para os pacotes publicados de Windows, Linux e macOS (rodando pelo código, mostra o link).
 
 **Outros**
-- Treinador (nome, TID/SID, dinheiro, tempo de jogo) e **Mochila com o ícone de cada item**; ao passar o mouse, a descrição em português e onde conseguir o item (dados do AllGenWiki).
+- **Treinador**: nome, TID/SID, dinheiro e tempo de jogo, mais **insígnias** de cada região (Gen 1 a 6, Sword/Shield e BD/SP, com "Todas" e "Nenhuma"), gênero, moedas do Game Corner (Gen 1 a 4), Battle Points e as datas de início da aventura e do Hall da Fama (Gen 4 e 5).
+- **Mochila com o ícone de cada item** (e "Todos os TMs"); ao passar o mouse, a descrição em português e onde conseguir o item (dados do AllGenWiki).
 - **Início** (⌂, Ctrl+0): ao abrir um save, cartão do jogo, a equipe no topo, atalhos grandes para cada página e os saves recentes.
 - **Temas completos** (⚙ na barra lateral): Padrão, PSS (X/Y), Pixel (GBA), Z-A (Lumiose), ORAS (Pokédex) e Kanto (Pokédex clássica), cada um em claro e escuro, mudando fundo, painéis, cantos, bordas e fonte na hora; mais a **cor de destaque** configurável e o **tamanho dos sprites** (Pequeno, Normal, Grande ou Enorme). No ⚙ dá para escolher a fonte (a do tema, Inter, Pixelify Sans ou Pokémon GB/GBC) em qualquer tema. O tema Pixel usa a fonte [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) (SIL Open Font License 1.1, em `Assets/Fonts/OFL.txt`); a opção Pokémon GB/GBC usa a [Pokemon Classic](https://fontstruct.com/fontstructions/show/1351066/pokemon-classic), recriação feita por fãs da fonte dos jogos de Game Boy, de TheLouster115 (CC BY-SA 3.0, em `Assets/Fonts/PokemonClassic-LICENSE.txt`).
 - **Idioma da interface** (⚙ na barra lateral, em Idioma): Português (Brasil), o padrão, ou English. Vale ao reiniciar; o app oferece reiniciar na hora.

@@ -59,7 +59,46 @@ public sealed class PokedexPageViewModel : PageViewModel
     {
         _sav = sav;
         SyncCommand.NotifyCanExecuteChanged();
+        foreach (var p in (string[])[nameof(CanEditDex), nameof(HasShinyOption), nameof(DexCounts)]) Raise(p);
     }
+
+    /// <summary>Grava no save aberto com desfazer (o historico da pagina Jogo). Definido pelo MainViewModel.</summary>
+    public Action<string, Action>? EditSave { get; set; }
+
+    /// <summary>Completar/limpar a Pokedex do save aberto (Gen 1 a 9, menos Legends: Arceus).</summary>
+    public bool CanEditDex => DexCompletion.IsSupported(_sav);
+    public bool HasShinyOption => DexCompletion.HasShinyOption(_sav);
+    private bool _includeShiny;
+    /// <summary>Marca tambem as formas shiny como vistas (Gen 5 em diante).</summary>
+    public bool IncludeShiny { get => _includeShiny; set => Set(ref _includeShiny, value); }
+    public string DexCounts => _sav is { HasPokeDex: true } s ? DexCountText(s) : "";
+    private static string DexCountText(SaveFile s) { var (seen, caught) = DexCompletion.Count(s); return $"Neste save: {seen} vistas · {caught} capturadas de {s.MaxSpeciesID}"; }
+
+    public RelayCommand DexActionCommand => _dexAction ??= new(p => { if (p is string s && Enum.TryParse<DexAction>(s, out var a)) _ = ApplyDexAsync(a); });
+    private RelayCommand? _dexAction;
+
+    private async Task ApplyDexAsync(DexAction action)
+    {
+        if (_sav is not { } sav || !CanEditDex || EditSave is null)
+            return;
+        var shiny = HasShinyOption && IncludeShiny;
+        var (title, message, ok, done) = action switch
+        {
+            DexAction.Complete => ("Completar a Pokédex?", $"Marca todas as {sav.MaxSpeciesID} espécies como vistas e capturadas no save aberto." + (sav.Generation >= 4 ? " Também marca formas, gêneros e idiomas." : "") + (shiny ? " As shiny também ficam como vistas." : "") + " Ctrl+Z desfaz; Salvar grava o arquivo.", "Completar", "Pokédex completa"),
+            DexAction.SeenAll => ("Marcar todas como vistas?", $"Marca todas as {sav.MaxSpeciesID} espécies como vistas, sem mudar as capturadas." + (shiny ? " As shiny também ficam como vistas." : "") + " Ctrl+Z desfaz.", "Marcar vistas", "Todas as espécies vistas"),
+            DexAction.CaughtNone => ("Tirar as capturadas?", "Desmarca todas as capturadas da Pokédex do save aberto; as vistas continuam. As caixas não mudam. Ctrl+Z desfaz.", "Tirar capturadas", "Capturadas desmarcadas"),
+            _ => ("Limpar a Pokédex?", "Desmarca todas as espécies, vistas e capturadas, na Pokédex do save aberto. As caixas não mudam. Ctrl+Z desfaz.", "Limpar", "Pokédex limpa"),
+        };
+        if (!await _confirm(title, message, ok, null))
+            return;
+        EditSave(done, () => DexCompletion.Apply(sav, action, shiny));
+        Raise(nameof(DexCounts));
+        _report($"{done}. {DexCountText(sav)}. Salve para gravar.");
+        await RefreshAsync();
+    }
+
+    /// <summary>Depois de desfazer/refazer na pagina: rele os numeros.</summary>
+    public void AfterUndo() { Raise(nameof(DexCounts)); _ = RefreshAsync(); }
 
     /// <summary>Sincronizar: registra na Pokedex do save aberto o que foi capturado/visto nos outros saves e o que voce tem guardado.</summary>
     public RelayCommand SyncCommand { get; }

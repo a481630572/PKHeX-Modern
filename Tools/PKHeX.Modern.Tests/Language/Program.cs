@@ -77,6 +77,14 @@ foreach (var page in vm.Pages)
     }
 }
 vm.CurrentPage = vm.Pokedex; vm.Pokedex.RefreshAsync().GetAwaiter().GetResult(); Scan("Pokédex");
+// Completar Pokedex: menu do botao e pergunta de confirmacao (com e sem shiny).
+var dexButton = win.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Flyout is Flyout && b.IsEffectivelyVisible);
+if (dexButton?.Flyout is Flyout dexFlyout) { dexFlyout.ShowAt(dexButton); Scan("Completar Pokédex (menu)", dexFlyout.Content as Control); dexFlyout.Hide(); }
+foreach (var shiny in new[] { false, true })
+    foreach (var action in new[] { "Complete", "SeenAll", "CaughtNone", "Clear" })
+    {
+        vm.Pokedex.IncludeShiny = shiny; vm.Pokedex.DexActionCommand.Execute(action); Scan("Completar Pokédex " + action); vm.Dialog?.Complete(false); Pump();
+    }
 var living = vm.Pokedex.LivingDex!;
 living.TargetIndex = Array.IndexOf(LivingDexViewModel.Versions.ToArray(), GameVersion.B);
 vm.Pokedex.ShowLivingDex = true;

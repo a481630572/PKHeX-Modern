@@ -680,6 +680,23 @@
                     ToolTip.Tip="Registra em cada save da pasta (e no aberto) o que foi capturado ou visto nos outros e o que está guardado nas caixas/bank. Os saves fechados são gravados na hora, com backup." />
             <Button Classes="small" Content="⟳  Atualizar" Command="{Binding RefreshCommand}"
                     ToolTip.Tip="Relê os saves da pasta, o save aberto e o bank" />
+            <Button Classes="small accent" Content="✔  Completar Pokédex do save ▾" IsVisible="{Binding CanEditDex}"
+                    ToolTip.Tip="Completar ou limpar a Pokédex do save aberto (vistas, capturadas, formas, gêneros e idiomas). Ctrl+Z desfaz.">
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedLeft">
+                  <StackPanel Spacing="6" MinWidth="280">
+                    <TextBlock Text="{Binding DexCounts}" Classes="muted" FontSize="12" />
+                    <Button Classes="small accent" HorizontalAlignment="Stretch" Content="✔  Completar (vistas e capturadas)" Command="{Binding DexActionCommand}" CommandParameter="Complete" />
+                    <Button Classes="small" HorizontalAlignment="Stretch" Content="👁  Marcar todas como vistas" Command="{Binding DexActionCommand}" CommandParameter="SeenAll" />
+                    <CheckBox Content="Incluir shiny (vistas)" IsChecked="{Binding IncludeShiny}" IsVisible="{Binding HasShinyOption}"
+                              ToolTip.Tip="Marca também as formas shiny como vistas (Gen 5 em diante)" />
+                    <Separator />
+                    <Button Classes="small" HorizontalAlignment="Stretch" Content="Tirar as capturadas" Command="{Binding DexActionCommand}" CommandParameter="CaughtNone" />
+                    <Button Classes="small danger" HorizontalAlignment="Stretch" Content="Limpar a Pokédex" Command="{Binding DexActionCommand}" CommandParameter="Clear" />
+                  </StackPanel>
+                </Flyout>
+              </Button.Flyout>
+            </Button>
           </WrapPanel>
         </StackPanel>
         <Grid DockPanel.Dock="Top" ColumnDefinitions="3*,2*,1.4*,2*" ColumnSpacing="8" Margin="0,0,0,8">

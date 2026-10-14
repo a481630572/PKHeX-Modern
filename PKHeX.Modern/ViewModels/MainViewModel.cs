@@ -134,6 +134,7 @@ public sealed partial class MainViewModel : ViewModelBase
         foreach (var page in AllPages)
             page.Changed = () => IsDirty = true;
         Game.HistoryChanged = OnHistoryChanged;
+        Pokedex.EditSave = Game.Edit;
         Boxes.SlotsLoaded = () => { ApplySearchHighlight(); ApplyMarks(); };
         Bank.SlotsLoaded = ApplyMarks;
         OtherSave.SlotsLoaded = ApplyMarks;
@@ -155,17 +156,17 @@ public sealed partial class MainViewModel : ViewModelBase
         CheckLegalityCommand = new RelayCommand(() => _ = CheckLegalityAsync(), () => HasSave && !_checkingLegality);
         CreateCommand = new RelayCommand(CreateInFirstEmpty, () => HasSave);
         DeleteCommand = new RelayCommand(() => _ = DeleteSelectedAsync(), () => CanExportEntity || HasMarks);
-        UndoCommand = new RelayCommand(Undo, () => CurrentPage == Game ? Game.History?.CanUndo == true : _history?.CanUndo == true);
+        UndoCommand = new RelayCommand(Undo, () => UsesGameHistory ? Game.History?.CanUndo == true : _history?.CanUndo == true);
         ShowPendingCommand = new RelayCommand(() => _ = ShowPendingAsync());
-        RedoCommand = new RelayCommand(Redo, () => CurrentPage == Game ? Game.History?.CanRedo == true : _history?.CanRedo == true);
+        RedoCommand = new RelayCommand(Redo, () => UsesGameHistory ? Game.History?.CanRedo == true : _history?.CanRedo == true);
     }
 
     public RelayCommand CheckLegalityCommand { get; }
     public RelayCommand UndoCommand { get; }
     public RelayCommand DeleteCommand { get; }
     public RelayCommand RedoCommand { get; }
-    public string UndoTip => (CurrentPage == Game ? Game.History?.UndoDescription : _history?.UndoDescription) is { } d ? $"Desfazer: {d} (Ctrl+Z)" : "Nada para desfazer (Ctrl+Z)";
-    public string RedoTip => (CurrentPage == Game ? Game.History?.RedoDescription : _history?.RedoDescription) is { } d ? $"Refazer: {d} (Ctrl+Y)" : "Nada para refazer (Ctrl+Y)";
+    public string UndoTip => (UsesGameHistory ? Game.History?.UndoDescription : _history?.UndoDescription) is { } d ? $"Desfazer: {d} (Ctrl+Z)" : "Nada para desfazer (Ctrl+Z)";
+    public string RedoTip => (UsesGameHistory ? Game.History?.RedoDescription : _history?.RedoDescription) is { } d ? $"Refazer: {d} (Ctrl+Y)" : "Nada para refazer (Ctrl+Y)";
     public RelayCommand CreateCommand { get; }
 
     /// <summary>Slot selecionado com Pokemon (para Exportar PKM).</summary>
@@ -490,7 +491,9 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>Painel do editor: some nas paginas de lista (Saves, Encontros, Eventos), que usam a largura toda.</summary>
     public bool ShowEditorPanel => HasSave && CurrentPage != Home && CurrentPage != SaveManager && CurrentPage != Encounters && CurrentPage != Gifts && CurrentPage != Bank && CurrentPage != Pokedex && CurrentPage != Search && CurrentPage != Batch && CurrentPage is not (BagPageViewModel or TrainerPageViewModel or GamePageViewModel) && !IsHelpOpen;
     public bool ShowSlotActions => HasSave && !IsHelpOpen && (CurrentPage == Boxes || CurrentPage == Party);
-    public bool ShowGameHistoryActions => HasSave && !IsHelpOpen && CurrentPage == Game;
+    public bool ShowGameHistoryActions => HasSave && !IsHelpOpen && UsesGameHistory;
+    /// <summary>Jogo e Pokedex desfazem pelo historico do save (flags, valores, Pokedex), nao pelo de slots.</summary>
+    private bool UsesGameHistory => CurrentPage == Game || CurrentPage == Pokedex;
     public bool ShowSaveActions => HasSave && !IsHelpOpen;
     public bool ShowSaveManagerActions => !IsHelpOpen && (!HasSave || CurrentPage == SaveManager);
     public bool ShowEncounterActions => HasSave && !IsHelpOpen && CurrentPage == Encounters;
@@ -2016,9 +2019,9 @@ public sealed partial class MainViewModel : ViewModelBase
 
     private void Undo()
     {
-        if (CurrentPage == Game)
+        if (UsesGameHistory)
         {
-            if (Game.UndoGame() is { } description) { RefreshSlots(); Status = $"Desfeito: {description}."; }
+            if (Game.UndoGame() is { } description) { RefreshSlots(); if (CurrentPage == Pokedex) Pokedex.AfterUndo(); Status = $"Desfeito: {description}."; }
             return;
         }
         if (_history?.Undo() is not { } what)
@@ -2031,9 +2034,9 @@ public sealed partial class MainViewModel : ViewModelBase
 
     private void Redo()
     {
-        if (CurrentPage == Game)
+        if (UsesGameHistory)
         {
-            if (Game.RedoGame() is { } description) { RefreshSlots(); Status = $"Refeito: {description}."; }
+            if (Game.RedoGame() is { } description) { RefreshSlots(); if (CurrentPage == Pokedex) Pokedex.AfterUndo(); Status = $"Refeito: {description}."; }
             return;
         }
         if (_history?.Redo() is not { } what)

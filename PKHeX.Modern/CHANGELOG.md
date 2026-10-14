@@ -8,6 +8,9 @@ Formato: "## versão — data", "### seção", "- item".
 
 ## Próxima versão
 
+### 📖 Pokédex
+- **Completar a Pokédex do save:** novo botão na página Pokédex para marcar todas as espécies como vistas e capturadas no save aberto (com formas, gêneros e idiomas onde o jogo guarda, e shiny vistos se quiser), marcar só como vistas, tirar as capturadas ou limpar tudo. Da Gen 1 ao Z-A (menos Legends: Arceus), com Ctrl+Z.
+
 ### ⚡ Atalhos
 - **Liberar tudo:** novos atalhos na página Jogo para o que é chato de farmar: todos os O-Powers e todos os treinos do Super Training (X/Y e Omega Ruby/Alpha Sapphire), todas as Zygarde Cells (Sun/Moon e Ultra Sun/Ultra Moon), itens do Grand Underground no máximo (BD/SP) e a bolsa de esferas do Underground cheia (Diamond/Pearl/Platinum).
 

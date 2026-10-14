@@ -6,7 +6,7 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
-## Próxima versão
+## 0.4.24 — 2026-10-14
 
 ### ♟ Treinador
 - **Insígnias, gênero, moedas, BP e datas:** a página Treinador agora edita as insígnias de cada região (Gen 1 a 6, Sword/Shield e BD/SP, com “Todas” e “Nenhuma”), o gênero do treinador, as moedas do Game Corner (Gen 1 a 4), os Battle Points (Emerald, Gen 4 a 7 e Sword/Shield) e as datas de início da aventura e do Hall da Fama (Gen 4 e 5).

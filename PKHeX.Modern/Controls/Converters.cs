@@ -57,3 +57,30 @@ public sealed class ChunkRowsConverter : IMultiValueConverter
         return rows;
     }
 }
+
+/// <summary>Largura (Bounds.Width) maior ou igual ao parametro → true. Ex.: mostrar nomes so quando ha espaco.</summary>
+public sealed class WidthAtLeastConverter : IValueConverter
+{
+    public static readonly WidthAtLeastConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is double d && d >= double.Parse(parameter as string ?? "0", CultureInfo.InvariantCulture);
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>Escolhe um tamanho pela largura: "limite,seMaiorOuIgual,seMenor" (ex.: "1400,410,360").</summary>
+public sealed class WidthPickConverter : IValueConverter
+{
+    public static readonly WidthPickConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var p = (parameter as string ?? "0,0,0").Split(',');
+        double limit = double.Parse(p[0], CultureInfo.InvariantCulture);
+        double wide = double.Parse(p[1], CultureInfo.InvariantCulture), narrow = double.Parse(p[2], CultureInfo.InvariantCulture);
+        return value is double d && d > 0 && d < limit ? narrow : wide;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}

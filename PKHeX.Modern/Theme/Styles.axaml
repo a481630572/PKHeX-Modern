@@ -78,10 +78,14 @@
     <Setter Property="Foreground" Value="{DynamicResource TintInfoForeground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource TintInfoBackground}" />
   </Style>
-  <Style Selector="Button.danger /template/ ContentPresenter, Button.danger:pointerover /template/ ContentPresenter">
+  <Style Selector="Button.danger /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TintDangerForeground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TintDangerForeground}" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource TintDangerBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource TintDangerForeground}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource TintDangerBackground}" />
   </Style>
   <Style Selector="Button.warn /template/ ContentPresenter, Button.warn:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource TintWarnBackground}" />
@@ -98,6 +102,14 @@
   </Style>
   <Style Selector="Button.good:disabled, Button.info:disabled, Button.danger:disabled, Button.warn:disabled, Button.soft:disabled, Button.accent:disabled">
     <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <!-- Botao dividido (Salvar ▾): as duas metades encostadas -->
+  <Style Selector="Button.splitLeft">
+    <Setter Property="CornerRadius" Value="8,0,0,8" />
+  </Style>
+  <Style Selector="Button.primary.splitRight">
+    <Setter Property="CornerRadius" Value="0,8,8,0" />
+    <Setter Property="Padding" Value="8,5" />
   </Style>
   <!-- Salvar: o botao mais importante da barra -->
   <Style Selector="Button.primary">
@@ -436,6 +448,28 @@
     <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
   </Style>
   <Style Selector="ListBox.nav ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <!-- Atalhos da barra lateral so ao passar o mouse ou na pagina atual (menos ruido na lista) -->
+  <Style Selector="TextBlock.navShortcut">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pointerover TextBlock.navShortcut, ListBox.nav ListBoxItem:selected TextBlock.navShortcut, Button.navHome:pointerover TextBlock.navShortcut, Button.navHome.selected TextBlock.navShortcut">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <!-- Ajuda aberta: a pagina de baixo nao fica marcada (a Ajuda e que esta na frente) -->
+  <Style Selector="ListBox.nav.dimmed ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.nav.dimmed ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+  <Style Selector="Button.helpNav.selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
+  </Style>
+  <Style Selector="Button.helpNav.selected">
     <Setter Property="Foreground" Value="{DynamicResource Accent}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>

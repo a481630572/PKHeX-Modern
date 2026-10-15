@@ -72,7 +72,7 @@ public abstract class EncounterListPageViewModel : PageViewModel
         ShowMoreCommand = new RelayCommand(() => ShowCount(Results.Count + PageSize));
         SelectCommand = new RelayCommand(p => Selected = p as EncounterCardViewModel);
         CloseDetailCommand = new RelayCommand(() => Selected = null);
-        ClearFiltersCommand = new RelayCommand(() => { _kind = All; _version = All; _move = ""; RaiseFilters(); ApplyFilters(); });
+        ClearFiltersCommand = new RelayCommand(() => { _kind = AllKinds; _version = AllVersions; _move = ""; RaiseFilters(); ApplyFilters(); });
     }
 
     // Selecao e painel de detalhes
@@ -102,15 +102,16 @@ public abstract class EncounterListPageViewModel : PageViewModel
     public bool HasDetail => Detail is not null;
 
     // Filtros (tipo, versao, golpe) sobre o resultado da busca
-    protected const string All = "Todos";
+    protected const string AllKinds = "Todos os encontros";
+    protected const string AllVersions = "Todas as versões";
     private IReadOnlyList<EncounterCardViewModel> _source = [];
     public RelayCommand ClearFiltersCommand { get; }
-    public IReadOnlyList<string> KindOptions { get; private set; } = [All];
-    public IReadOnlyList<string> VersionOptions { get; private set; } = [All];
+    public IReadOnlyList<string> KindOptions { get; private set; } = [AllKinds];
+    public IReadOnlyList<string> VersionOptions { get; private set; } = [AllVersions];
     public IReadOnlyList<string> MoveNames => CoreAdapter.MoveNames;
-    private string _kind = All, _version = All, _move = "";
-    public string KindFilter { get => _kind; set { if (Set(ref _kind, value ?? All)) ApplyFilters(); } }
-    public string VersionFilter { get => _version; set { if (Set(ref _version, value ?? All)) ApplyFilters(); } }
+    private string _kind = AllKinds, _version = AllVersions, _move = "";
+    public string KindFilter { get => _kind; set { if (Set(ref _kind, value ?? AllKinds)) ApplyFilters(); } }
+    public string VersionFilter { get => _version; set { if (Set(ref _version, value ?? AllVersions)) ApplyFilters(); } }
     /// <summary>So encontros que ja vem com este golpe (texto parcial e ignorado ate virar um golpe).</summary>
     public string MoveFilter
     {
@@ -124,7 +125,7 @@ public abstract class EncounterListPageViewModel : PageViewModel
         }
     }
     public bool HasFilters => _source.Count > 0;
-    public bool IsFiltered => _kind != All || _version != All || _move.Length > 0;
+    public bool IsFiltered => _kind != AllKinds || _version != AllVersions || _move.Length > 0;
 
     private void RaiseFilters()
     {
@@ -136,10 +137,10 @@ public abstract class EncounterListPageViewModel : PageViewModel
     protected void SetSource(IReadOnlyList<EncounterCardViewModel> cards)
     {
         _source = cards;
-        KindOptions = [All, .. cards.Select(c => c.Category).Distinct().Order()];
-        VersionOptions = [All, .. cards.Select(c => c.VersionName).Where(v => v.Length > 0).Distinct().Order()];
-        if (!KindOptions.Contains(_kind)) _kind = All;
-        if (!VersionOptions.Contains(_version)) _version = All;
+        KindOptions = [AllKinds, .. cards.Select(c => c.Category).Distinct().Order()];
+        VersionOptions = [AllVersions, .. cards.Select(c => c.VersionName).Where(v => v.Length > 0).Distinct().Order()];
+        if (!KindOptions.Contains(_kind)) _kind = AllKinds;
+        if (!VersionOptions.Contains(_version)) _version = AllVersions;
         foreach (var p in (string[])[nameof(KindOptions), nameof(VersionOptions), nameof(HasFilters)])
             Raise(p);
         RaiseFilters();
@@ -155,8 +156,8 @@ public abstract class EncounterListPageViewModel : PageViewModel
     protected void ApplyFilters()
     {
         var move = _move.Length == 0 ? 0 : CoreAdapter.FindIndex(CoreAdapter.MoveNames, _move);
-        var list = _source.Where(c => (_kind == All || c.Category == _kind)
-                                      && (_version == All || c.VersionName == _version)
+        var list = _source.Where(c => (_kind == AllKinds || c.Category == _kind)
+                                      && (_version == AllVersions || c.VersionName == _version)
                                       && (move <= 0 || c.FixedMoves.Contains((ushort)move))
                                       && Matches(c)).ToList();
         SetMatches(list);

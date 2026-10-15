@@ -33,7 +33,8 @@ var win = new MainWindow { DataContext = vm, Width = 1440, Height = 900 }; win.S
 void Pump(int n = 10) { for (int i = 0; i < n; i++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); } }
 bool Wait(Func<bool> done, int ms = 15000) { var sw = Stopwatch.StartNew(); while (sw.ElapsedMilliseconds < ms && !done()) { Pump(2); if (vm.Dialog is { } d) d.Complete(true); System.Threading.Thread.Sleep(10); } return done(); }
 Button[] SideSaves() => [.. win.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("sideSave") && b.IsEffectivelyVisible)];
-bool SaveAsVisible() => win.GetVisualDescendants().OfType<Button>().Any(b => b.Content as string == "Salvar como..." && b.IsEffectivelyVisible);
+// "Salvar como..." fica na seta ▾ ao lado do Salvar do rodape (botao dividido), nao mais na barra lateral.
+bool SaveAsVisible() => win.GetVisualDescendants().OfType<Button>().Any(b => b.Content as string == "▾" && b.Classes.Contains("splitRight") && b.IsEffectivelyVisible);
 
 Check("lista da pasta carregada", Wait(() => SideSaves().Length == 2), $"{SideSaves().Length} saves");
 Check("sem save aberto: “Salvar como...” escondido", !SaveAsVisible());

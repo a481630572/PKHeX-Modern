@@ -241,7 +241,15 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
     public ObservableCollection<PouchViewModel> Pouches { get; } = [];
 
     private PouchViewModel? _selected;
-    public PouchViewModel? SelectedPouch { get => _selected; set => Set(ref _selected, value); }
+    public PouchViewModel? SelectedPouch { get => _selected; set { if (Set(ref _selected, value)) value?.Refresh(); } }
+
+    private bool _showEmptySlots;
+    /// <summary>Mostra todas as vagas vazias do bolso (sem isso, so os itens que existem e algumas vagas para adicionar).</summary>
+    public bool ShowEmptySlots
+    {
+        get => _showEmptySlots;
+        set { if (!Set(ref _showEmptySlots, value)) return; foreach (var p in Pouches) p.ShowEmpty = value; }
+    }
 
     public RelayCommand SaveCommand => new(Save);
 
@@ -271,7 +279,7 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
     {
         bool editable = CoreAdapter.IsBagItemIdEditable(sav);
         foreach (var p in bag.Pouches)
-            Pouches.Add(new PouchViewModel(bag, p, editable, CoreAdapter.GetItemNames(sav), sav.Context, sav.Version, OnItemChanged));
+            Pouches.Add(new PouchViewModel(bag, p, editable, CoreAdapter.GetItemNames(sav), sav.Context, sav.Version, OnItemChanged) { ShowEmpty = _showEmptySlots });
     }
 
     /// <summary>Todos os TMs (e HMs/TRs do mesmo bolso) na quantidade maxima, sem apagar o que ja estava la.</summary>
@@ -302,11 +310,11 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
         var index = SelectedPouch is { } sel ? Pouches.IndexOf(sel) : 0;
         Pouches.Clear();
         FillPouches(_sav, _bag);
-        SelectedPouch = Pouches.FirstOrDefault(p => p.Name == nameof(InventoryType.TMHMs)) ?? Pouches.ElementAtOrDefault(index);
+        SelectedPouch = Pouches.FirstOrDefault(p => p.Type == InventoryType.TMHMs) ?? Pouches.ElementAtOrDefault(index);
         OnItemChanged();
         status(full > 0
-            ? $"{given} TM(s) na mochila, com 99 de cada; {full} não couberam (bolso cheio). Grave a mochila e salve o save para manter."
-            : $"{given} TM(s) na mochila, com 99 de cada. Grave a mochila e salve o save para manter.");
+            ? $"{given} TM(s) na mochila, com 99 de cada; {full} não couberam (bolso cheio). Aplique a mochila e salve para manter."
+            : $"{given} TM(s) na mochila, com 99 de cada. Aplique a mochila e salve para manter.");
     }
 
     /// <summary>Mexeu num item: o save passa a ter alteracoes pendentes (antes, o Salvar gravava sem a mochila).</summary>
@@ -333,7 +341,7 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
         CoreAdapter.SaveBag(_sav, _bag);
         HasPendingChanges = false;
         Changed?.Invoke();
-        status("Mochila gravada. Lembre-se de exportar o save.");
+        status("Mochila aplicada. Lembre-se de salvar.");
     }
 }
 
@@ -342,15 +350,54 @@ public sealed class PouchViewModel : ViewModelBase
     /// <param name="names">Nomes na numeracao do save (Gen 1-3 tem numeracao propria).</param>
     public PouchViewModel(PlayerBag bag, InventoryPouch pouch, bool editable, IReadOnlyList<string> names, EntityContext context, GameVersion version = GameVersion.Any, Action? changed = null)
     {
-        Name = pouch.Type.ToString();
+        Type = pouch.Type;
+        Name = GetName(pouch.Type);
         Options = [.. pouch.GetAllItems().ToArray().Prepend((ushort)0).Distinct()
             .Select(id => new ItemOption(id, id == 0 ? "(nenhum)" : id < names.Count && names[id].Length > 0 ? names[id] : $"Item #{id}", context, version))];
         Items = [.. pouch.Items.Select(it => new BagItemViewModel(bag, pouch.Type, it, Options, editable, changed))];
     }
 
+    public InventoryType Type { get; }
     public string Name { get; }
     public IReadOnlyList<ItemOption> Options { get; }
     public IReadOnlyList<BagItemViewModel> Items { get; }
+
+    /// <summary>Vagas vazias que continuam na tela quando as outras ficam escondidas (para adicionar itens).</summary>
+    public const int FreeSlotsShown = 8;
+    private bool _showEmpty;
+    public bool ShowEmpty { get => _showEmpty; set { if (Set(ref _showEmpty, value)) Refresh(); } }
+    /// <summary>O que a tela mostra: tudo, ou os itens que existem mais algumas vagas livres (antes, dezenas de "(nenhum)").</summary>
+    public IReadOnlyList<BagItemViewModel> VisibleItems { get; private set; } = [];
+    public string FreeText { get; private set; } = "";
+    /// <summary>Recalcula a lista (ao trocar de bolso ou de modo; nao no meio da edicao, para a linha nao sair do lugar).</summary>
+    public void Refresh()
+    {
+        var empty = Items.Where(i => i.IsEmptySlot).ToList();
+        VisibleItems = _showEmpty ? Items : [.. Items.Where(i => !i.IsEmptySlot), .. empty.Take(FreeSlotsShown)];
+        FreeText = empty.Count == 0 ? "Bolso cheio" : $"{empty.Count} vagas livres";
+        Raise(nameof(VisibleItems)); Raise(nameof(FreeText));
+    }
+
+    /// <summary>Nome do bolso para a tela (o enum do Core tem nomes internos, como "KeyItems" e "TMHMs").</summary>
+    public static string GetName(InventoryType type) => type switch
+    {
+        InventoryType.Items => "Itens",
+        InventoryType.KeyItems => "Itens-chave",
+        InventoryType.TMHMs => "TMs e HMs",
+        InventoryType.Medicine => "Remédios",
+        InventoryType.Berries => "Frutas",
+        InventoryType.Balls => "Pokébolas",
+        InventoryType.BattleItems => "Itens de batalha",
+        InventoryType.MailItems => "Cartas",
+        InventoryType.PCItems => "PC",
+        InventoryType.FreeSpace => "Espaço livre",
+        InventoryType.ZCrystals => "Z-Crystals",
+        InventoryType.Candy => "Doces",
+        InventoryType.Treasure => "Tesouros",
+        InventoryType.Ingredients => "Ingredientes",
+        InventoryType.MegaStones => "Mega Stones",
+        _ => type.ToString(),
+    };
 }
 
 /// <summary>Um item da lista da mochila; o icone e gerado so quando aparece na tela.</summary>

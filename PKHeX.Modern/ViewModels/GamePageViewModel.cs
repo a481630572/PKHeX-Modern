@@ -9,7 +9,7 @@ namespace PKHeX.Modern.ViewModels;
 
 /// <summary>
 /// Editores por jogo: flags de evento, valores de evento e recordes do save aberto. As alteracoes valem na hora
-/// (como no Treinador) e marcam o save como alterado; exporte o save para gravar no arquivo.
+/// (como no Treinador) e marcam o save como alterado; Salvar grava o arquivo.
 /// </summary>
 public sealed partial class GamePageViewModel : PageViewModel
 {

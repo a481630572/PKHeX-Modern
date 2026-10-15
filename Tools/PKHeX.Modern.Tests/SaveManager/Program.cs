@@ -81,7 +81,9 @@ fullWindow.Width = 1500; fullWindow.Height = 950; Pump();
 fullWindow.CaptureRenderedFrame()!.Save(Path.Combine(dir, "app.png"));
 var footer = fullWindow.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("actionBar"));
 bool FooterShows(string text) => footer.GetVisualDescendants().OfType<Button>().Any(b => b.IsEffectivelyVisible && b.Content?.ToString() == text);
-Check("barra inicial oferece Abrir e Atualizar", FooterShows("Abrir save...") && FooterShows("⟳  Atualizar") && !FooterShows("💾  Salvar"));
+// Rodape so com acoes do save: sem save aberto ele fica vazio; Abrir save fica na barra lateral e Atualizar no topo do Save Manager.
+bool Shows(string text) => fullWindow.GetVisualDescendants().OfType<Button>().Any(b => b.IsEffectivelyVisible && b.Content?.ToString() == text);
+Check("sem save: Abrir na barra lateral, Atualizar no Save Manager e rodapé sem Salvar", Shows("Abrir save...") && Shows("⟳  Atualizar") && !FooterShows("⟳  Atualizar") && !FooterShows("💾  Salvar"));
 main.Open(Path.Combine(library, "black-0.sav")); Pump();
 Check("Início mostra Salvar sem ações de slot", main.CurrentPage == main.Home && FooterShows("💾  Salvar") && !FooterShows("⭳  Importar"));
 main.CurrentPage = main.Boxes; Pump();
@@ -92,10 +94,11 @@ foreach (var page in main.Pages.ToArray())
     Check("Salvar disponível em " + page.Title, FooterShows("💾  Salvar"));
     if (page != main.Boxes && page != main.Party) Check("sem ações de slot em " + page.Title, !FooterShows("⭳  Importar"));
 }
+// Um botao principal por tela: "Usar este encontro" fica no painel de detalhes, nao repetido no rodape.
 main.CurrentPage = main.Encounters; Pump();
-Check("ação contextual de encontro", FooterShows("Usar encontro"));
+Check("encontro sem botão repetido no rodapé", !FooterShows("Usar encontro"));
 main.CurrentPage = main.Gifts; Pump();
-Check("ação contextual de evento", FooterShows("Usar evento"));
+Check("evento: rodapé só com Adicionar ao save", !FooterShows("Usar evento") && FooterShows("Adicionar ao save"));
 main.CurrentPage = main.SaveManager; Pump();
 fullWindow.CaptureRenderedFrame()!.Save(Path.Combine(dir, "actions-saves.png"));
 main.IsHelpOpen = true; Pump();

@@ -55,7 +55,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:TypeChip">
-                <Border Classes="chip" Background="{Binding Brush}">
+                <Border Classes="chip" Background="{Binding Brush}" ToolTip.Tip="Tipo">
                   <TextBlock Text="{Binding Name}" />
                 </Border>
               </DataTemplate>
@@ -79,8 +79,8 @@
     </Border>
 
     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-      <Button Content="⇩ Colar Showdown" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnImportShowdown" />
-      <Button Grid.Column="1" Content="⇧ Copiar Showdown" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnExportShowdown" />
+      <Button Content="⇩ Colar Showdown" FontSize="13" Padding="6,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnImportShowdown" />
+      <Button Grid.Column="1" Content="⇧ Copiar Showdown" FontSize="13" Padding="6,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnExportShowdown" />
     </Grid>
 
     <TabControl Classes="editorTabs" SelectedIndex="{Binding SelectedTab}">
@@ -112,7 +112,7 @@
                          ToolTip.Tip="{Binding HeldItemTip}" />
                   <AutoCompleteBox Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding ItemOptions}" SelectedItem="{Binding SelectedItem}"
                                    ValueMemberBinding="{Binding Text, x:DataType=core:ComboItem}" FilterMode="ContainsOrdinal"
-                                   MinimumPrefixLength="1" MaxDropDownHeight="320" Watermark="Nenhum (digite para buscar)">
+                                   MinimumPrefixLength="1" MaxDropDownHeight="320" Watermark="Digite para buscar">
                     <AutoCompleteBox.ItemTemplate>
                       <DataTemplate x:DataType="core:ComboItem">
                         <TextBlock Text="{Binding Text}" />

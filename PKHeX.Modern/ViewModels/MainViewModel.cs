@@ -708,9 +708,9 @@ public sealed partial class MainViewModel : ViewModelBase
     public IReadOnlyList<string> PendingActions => _history is null ? [] : [.. _history.Descriptions.Skip(Math.Min(_historyAtSave, _history.Count))];
     public string PendingText => PendingActions.Count switch
     {
-        0 => "● Alterações não exportadas",
-        1 => "● 1 alteração não exportada",
-        var n => $"● {n} alterações não exportadas",
+        0 => "● Alterações não salvas",
+        1 => "● 1 alteração não salva",
+        var n => $"● {n} alterações não salvas",
     };
     public RelayCommand ShowPendingCommand { get; }
     /// <summary>A janela pede para salvar (abre o seletor de arquivo); a View trata.</summary>
@@ -721,7 +721,7 @@ public sealed partial class MainViewModel : ViewModelBase
         var list = PendingActions.Select((d, i) => $"{i + 1}. {char.ToUpper(d[0])}{d[1..]}").ToList();
         if (list.Count == 0)
             list.Add("Alterações nas caixas, na mochila ou nos dados do treinador.");
-        if (await ConfirmAsync("Alterações não exportadas",
+        if (await ConfirmAsync("Alterações não salvas",
                 "Estas alterações ainda não estão no arquivo do save. Use Salvar para gravar (Ctrl+Z desfaz a última).",
                 "Salvar agora", "Fechar", isDanger: true, details: list, icon: "●"))
             SaveRequested?.Invoke();
@@ -750,7 +750,7 @@ public sealed partial class MainViewModel : ViewModelBase
     public async Task<bool> ConfirmCloseAsync()
     {
         var dirty = OpenSaves.Where(t => t.IsDirty).ToList();
-        if (dirty.Count > 0 && !await ConfirmAsync("Alterações não exportadas",
+        if (dirty.Count > 0 && !await ConfirmAsync("Alterações não salvas",
                 dirty.Count == 1
                     ? $"{dirty[0].FileName} tem alterações que ainda não foram exportadas. Fechar o PKHeX Modern vai descartá-las."
                     : $"{dirty.Count} saves abertos têm alterações que ainda não foram exportadas. Fechar o PKHeX Modern vai descartá-las.",
@@ -765,7 +765,7 @@ public sealed partial class MainViewModel : ViewModelBase
     {
         if (!IsDirty)
             return true;
-        return await ConfirmAsync("Alterações não exportadas",
+        return await ConfirmAsync("Alterações não salvas",
             $"O save atual tem alterações que ainda não foram exportadas. {action} vai descartá-las.",
             "Descartar alterações", "Voltar", isDanger: true);
     }
@@ -825,7 +825,7 @@ public sealed partial class MainViewModel : ViewModelBase
             return;
         StoreActiveTab();
         ActivateTab(tab);
-        Status = $"{tab.FileName} ({tab.Game})" + (tab.IsDirty ? " · com alterações não exportadas" : "");
+        Status = $"{tab.FileName} ({tab.Game})" + (tab.IsDirty ? " · com alterações não salvas" : "");
     }
 
     /// <summary>Fecha uma aba (pergunta se houver alteracoes nao exportadas).</summary>
@@ -934,7 +934,7 @@ public sealed partial class MainViewModel : ViewModelBase
         }
         bool dirty = tab == _activeTab ? IsDirty : tab.IsDirty;
         if (dirty && !await ConfirmAsync("Recarregar save?",
-                $"{tab.FileName} mudou no disco, mas a aba tem alterações não exportadas. Recarregar vai descartá-las.",
+                $"{tab.FileName} mudou no disco, mas a aba tem alterações não salvas. Recarregar vai descartá-las.",
                 "Recarregar", "Manter a aba como está", isDanger: true))
             return;
         if (tab == _activeTab && !await ConfirmDiscardEditAsync())
@@ -1345,9 +1345,9 @@ public sealed partial class MainViewModel : ViewModelBase
         RefreshSlots();
         Status = mode switch
         {
-            DropMode.Copy => $"{srcName} copiado para {dst.Location}. Lembre-se de exportar o save.",
-            DropMode.Overwrite => $"{srcName} sobrescreveu {dst.Location} (a origem ficou vazia). Lembre-se de exportar o save.",
-            _ => $"{srcName} movido para {dst.Location}. Lembre-se de exportar o save.",
+            DropMode.Copy => $"{srcName} copiado para {dst.Location}. Lembre-se de salvar.",
+            DropMode.Overwrite => $"{srcName} sobrescreveu {dst.Location} (a origem ficou vazia). Lembre-se de salvar.",
+            _ => $"{srcName} movido para {dst.Location}. Lembre-se de salvar.",
         };
     }
 
@@ -2332,7 +2332,7 @@ public sealed partial class MainViewModel : ViewModelBase
                 Party.Load(_sav);
             applied?.Invoke(pk);
             RaiseSelectionChanged();
-            Status = $"{CoreAdapter.SpeciesNames[pk.Species]} gravado em {slot.Location}. Lembre-se de exportar o save.";
+            Status = $"{CoreAdapter.SpeciesNames[pk.Species]} gravado em {slot.Location}. Lembre-se de salvar.";
         }, s => Status = s, isNew: generated is null && slot.IsEmpty, pendingApply: generated is not null, sav: _sav, legalMode: Settings.LegalMode) { SelectedTab = tab, ShowQr = ShowPokemonQr, Confirm = (t, m, ok) => ConfirmAsync(t, m, ok),
             ConfirmPreview = ConfirmEditorPreviewAsync, IsCurrentEditor = () => Editor == nextEditor };
         Editor = nextEditor;

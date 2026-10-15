@@ -99,6 +99,8 @@ public sealed class HomePageViewModel(Action<PageViewModel> navigate, Action<int
         GiftDbViewModel => "Mystery Gift",
         SaveManagerViewModel => "Todos os saves da pasta",
         SearchPageViewModel => "Pokémon de todos os saves e do bank",
+        GamePageViewModel => "Flags, recordes, atalhos e editores do jogo",
+        BatchPageViewModel => "Alterar vários Pokémon de uma vez",
         _ => "",
     };
 

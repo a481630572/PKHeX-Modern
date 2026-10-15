@@ -6,6 +6,23 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
+## 0.4.25 — 2026-10-15
+
+### 🎨 Interface
+- **Caixas mais compactas:** o cabeçalho da caixa ficou numa linha só (‹ nome · contagem · ⋯ Caixa ›) e Renomear, papel de parede, Showdown e CSV foram para o menu **⋯ Caixa**. Em notebooks (1280×720) aparecem quase duas linhas de slots a mais de uma e meia; em janelas de 1100 px, quatro colunas em vez de três.
+- **Painel do editor adaptável:** 360 px em janelas abaixo de 1400 px (410 px nas maiores), e a faixa da equipe mostra só os sprites quando falta espaço, em vez de nomes cortados.
+- **Mochila com nomes de bolso em português:** Itens, Itens-chave, TMs e HMs, Remédios, Frutas... (antes apareciam nomes internos, como "KeyItems" e "TMHMs").
+- **Edição em lote:** Pré-visualizar e Aplicar ficam fixos embaixo da coluna, sempre visíveis.
+- **Salvar ▾:** "Salvar como..." saiu da barra lateral e virou a seta ao lado do Salvar, no rodapé; "Abrir save..." só fica em destaque quando nenhum save está aberto.
+- **Um botão principal por tela:** o "Usar" dos cartões de Encontros e Eventos ficou neutro (o painel de detalhes tem "Usar este encontro"), e o rodapé não repete mais as ações que já ficam no topo da página (Atualizar, Sincronizar, Usar encontro, Atualizar anexados, Aplicar mochila).
+- **Excluir com cara de ação destrutiva:** contorno vermelho em vez de fundo, para não se confundir com o Salvar.
+- **Mesmo vocabulário em todo o app:** "Aplicar" leva a mudança ao save aberto e "Salvar" grava o arquivo ("alterações não salvas", "Lembre-se de salvar", "Aplicar mochila"); "exportar" ficou só para arquivos .pk*.
+- **Mochila mais limpa:** mostra os itens que você tem e algumas vagas livres para adicionar, em vez de dezenas de "(nenhum)"; "Mostrar todas as vagas" mostra o bolso inteiro.
+- **Detalhes:** atalhos da barra lateral só aparecem ao passar o mouse ou na página atual; filtros de Encontros dizem "Todos os encontros" e "Todas as versões"; os atalhos Jogo e Edição em lote do Início ganharam descrição; a Ajuda tem texto com mais contraste e linhas mais curtas.
+
+### 🐛 Correções
+- **Ajuda na barra lateral:** com a Ajuda aberta, a página anterior não fica mais marcada; o botão Ajuda é que fica em destaque.
+
 ## 0.4.24 — 2026-10-14
 
 ### ♟ Treinador

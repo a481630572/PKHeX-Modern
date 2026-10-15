@@ -27,10 +27,9 @@
             <TextBlock Text="PKHeX" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource Accent}" />
             <TextBlock Text="Modern" Classes="muted" VerticalAlignment="Bottom" Margin="0,0,0,4" />
           </StackPanel>
-          <Button Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+          <!-- Primario so sem save aberto; com save, o primario da tela e o Salvar do rodape (Salvar como fica na seta dele) -->
+          <Button Classes.accent="{Binding !HasSave}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                   Content="Abrir save..." Click="OnOpen" ToolTip.Tip="Ctrl+O" />
-          <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                  Content="Salvar como..." Click="OnExport" IsVisible="{Binding HasSave}" ToolTip.Tip="Escolhe onde gravar o save (Ctrl+E)" />
           <Button Classes="ghost small" Command="{Binding OpenLastCommand}" IsVisible="{Binding ShowLastSaveLink}"
                   ToolTip.Tip="{Binding Settings.LastSavePath}">
             <TextBlock Text="{Binding LastSaveName, StringFormat='↺  Último: {0}'}" TextTrimming="CharacterEllipsis" />
@@ -96,7 +95,7 @@
           </ToggleButton>
           <!-- Ajuda, atalhos, claro/escuro e preferencias (tema, cor, idioma, abrir ultimo) numa linha -->
           <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="2">
-            <Button Classes="ghost small" HorizontalAlignment="Stretch" Content="Ajuda" Command="{Binding OpenHelpCommand}"
+            <Button Classes="ghost small helpNav" Classes.selected="{Binding IsHelpOpen}" HorizontalAlignment="Stretch" Content="Ajuda" Command="{Binding OpenHelpCommand}"
                     ToolTip.Tip="Todas as funções explicadas, o que mudou em cada versão e Sobre (F1)" />
             <Button Grid.Column="1" Classes="ghost small" Content="⌨" IsVisible="{x:Static local:App.ShowShortcuts}"
                     ToolTip.Tip="Atalhos do teclado&#10;Ctrl+F buscar · Q / E trocar página&#10;Esc voltar · Del excluir&#10;Ctrl+clique seleciona vários&#10;Ctrl+Z desfazer · Ctrl+Y refazer&#10;Ctrl+O abrir · Ctrl+S salvar" />
@@ -209,7 +208,7 @@
           <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
             <TextBlock Text="⌂" Width="20" TextAlignment="Center" />
             <TextBlock Grid.Column="1" Text="Início" />
-            <TextBlock Grid.Column="2" Text="Ctrl+0" Classes="muted" FontSize="10" VerticalAlignment="Center" IsVisible="{x:Static local:App.ShowShortcuts}" />
+            <TextBlock Grid.Column="2" Text="Ctrl+0" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center" IsVisible="{x:Static local:App.ShowShortcuts}" />
           </Grid>
         </Button>
         <!-- Sem save aberto: os saves da pasta (Save Manager) para abrir com um clique -->
@@ -243,7 +242,7 @@
             </ItemsControl>
           </ScrollViewer>
         </DockPanel>
-        <ListBox Classes="nav" IsVisible="{Binding HasSave}" ItemsSource="{Binding Pages}"
+        <ListBox Classes="nav" Classes.dimmed="{Binding IsHelpOpen}" IsVisible="{Binding HasSave}" ItemsSource="{Binding Pages}"
                  SelectedItem="{Binding CurrentPage}" Background="Transparent">
           <!-- Sem virtualizacao: sao poucas paginas, e no Android a linha reciclada ficava desenhada por cima ao rolar -->
           <ListBox.ItemsPanel>
@@ -254,7 +253,7 @@
               <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                 <TextBlock Text="{Binding Icon}" Width="20" TextAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding Title}" />
-                <TextBlock Grid.Column="2" Text="{Binding Shortcut}" Classes="muted" FontSize="10" VerticalAlignment="Center"
+                <TextBlock Grid.Column="2" Text="{Binding Shortcut}" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center"
                            IsVisible="{x:Static local:App.ShowShortcuts}" />
               </Grid>
             </DataTemplate>
@@ -302,7 +301,7 @@
                         <TextBlock Text="{Binding Game}" Classes="muted" FontSize="10" MaxWidth="170" TextTrimming="CharacterEllipsis" />
                       </StackPanel>
                       <TextBlock Grid.Column="2" Text="●" Classes="tabDirty" IsVisible="{Binding IsDirty}" VerticalAlignment="Center"
-                                 ToolTip.Tip="Alterações não exportadas" />
+                                 ToolTip.Tip="Alterações não salvas" />
                       <Button Grid.Column="3" Classes="tabClose" Content="✕" Command="{Binding CloseCommand}"
                               ToolTip.Tip="Fechar este save (Ctrl+W)" />
                     </Grid>
@@ -335,13 +334,13 @@
     </DockPanel>
 
     <!-- Editor -->
-    <Border Grid.Column="2" Width="410" Background="{DynamicResource SidebarBackground}"
+    <Border Grid.Column="2" Width="{Binding $parent[views:MainView].Bounds.Width, Converter={x:Static controls:WidthPickConverter.Instance}, ConverterParameter='1400,410,360'}" Background="{DynamicResource SidebarBackground}"
             BorderBrush="{DynamicResource CardBorder}" BorderThickness="1,0,0,0" IsVisible="{Binding ShowEditorPanel}">
       <Panel>
         <TextBlock Text="Selecione um slot" Classes="muted" IsVisible="{Binding !HasEditor}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />
         <ScrollViewer IsVisible="{Binding HasEditor}">
-          <ContentControl Content="{Binding Editor}" Margin="20" />
+          <ContentControl Content="{Binding Editor}" Margin="16,20" />
         </ScrollViewer>
       </Panel>
     </Border>
@@ -387,22 +386,19 @@
             <Button Classes="small" Content="↶" FontSize="16" Padding="10,0" Command="{Binding UndoCommand}" ToolTip.Tip="{Binding UndoTip}" />
             <Button Classes="small" Content="↷" FontSize="16" Padding="10,0" Command="{Binding RedoCommand}" ToolTip.Tip="{Binding RedoTip}" />
           </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowSaveManagerActions}">
-            <Button Classes="small" Content="⟳  Atualizar" Command="{Binding SaveManager.RefreshCommand}" ToolTip.Tip="Reler saves ou backups (F5)" />
-            <Button Classes="small" Content="Abrir save..." Click="OnOpen" ToolTip.Tip="Abrir um arquivo de save (Ctrl+O)" />
-          </StackPanel>
-          <Button Classes="accent small" Content="Usar encontro" IsVisible="{Binding ShowEncounterActions}" IsEnabled="{Binding Encounters.HasDetail}" Command="{Binding Encounters.UseCommand}" CommandParameter="{Binding Encounters.Selected}" />
-          <Button Classes="accent small" Content="Usar evento" IsVisible="{Binding ShowGiftActions}" IsEnabled="{Binding Gifts.HasDetail}" Command="{Binding Gifts.UseCommand}" CommandParameter="{Binding Gifts.Selected}" />
           <Button Classes="small" Content="Adicionar ao save" IsVisible="{Binding ShowGiftActions}" IsEnabled="{Binding Game.HasCards}" Command="{Binding AddSelectedCardCommand}" ToolTip.Tip="Guarda o cartão selecionado para receber dentro do jogo" />
-          <Button Classes="small" Content="Atualizar anexados" IsVisible="{Binding ShowBankActions}" Command="{Binding SyncAttachedCommand}" />
-          <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowDexActions}">
-            <Button Classes="small" Content="⟳  Atualizar Pokédex" Command="{Binding Pokedex.RefreshCommand}" />
-            <Button Classes="small" Content="Sincronizar save" Command="{Binding Pokedex.SyncCommand}" />
-          </StackPanel>
-          <Button Classes="small" Content="Aplicar mochila" IsVisible="{Binding ActionBag, Converter={x:Static ObjectConverters.IsNotNull}}" Command="{Binding ActionBag.SaveCommand}" />
           <Button Classes="small" Content="‹  Voltar" IsVisible="{Binding IsHelpOpen}" Command="{Binding CloseHelpCommand}" ToolTip.Tip="Voltar à página anterior (Esc)" />
-          <Button Classes="accent small primary" Content="💾  Salvar" Click="OnQuickSave" IsVisible="{Binding ShowSaveActions}"
-                  ToolTip.Tip="Grava por cima do arquivo do save, sem abrir janela (Ctrl+S). O arquivo anterior vai para os backups antes. Para escolher outro lugar, use “Salvar como...” (Ctrl+E)." />
+          <StackPanel Orientation="Horizontal" Spacing="1" IsVisible="{Binding ShowSaveActions}">
+            <Button Classes="accent small primary splitLeft" Content="💾  Salvar" Click="OnQuickSave"
+                    ToolTip.Tip="Grava por cima do arquivo do save, sem abrir janela (Ctrl+S). O arquivo anterior vai para os backups antes. Para escolher outro lugar, use a seta ao lado (Salvar como..., Ctrl+E)." />
+            <Button Classes="accent small primary splitRight" Content="▾" ToolTip.Tip="Mais opções de salvar">
+              <Button.Flyout>
+                <MenuFlyout Placement="TopEdgeAlignedRight">
+                  <MenuItem Header="Salvar como... (Ctrl+E)" Click="OnExport" />
+                </MenuFlyout>
+              </Button.Flyout>
+            </Button>
+          </StackPanel>
         </StackPanel>
       </Grid>
     </Border>

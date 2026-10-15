@@ -37,7 +37,7 @@
             <Border Classes="chip" Background="{DynamicResource CardBorder}" IsVisible="{Binding IsShinyLocked}" ToolTip.Tip="Nunca é shiny (shiny lock)"><TextBlock Text="🔒" /></Border>
             <Border Classes="chip" Background="#2F80ED" IsVisible="{Binding IsHomeGift}" ToolTip.Tip="Presente do Pokémon HOME"><TextBlock Text="HOME" /></Border>
           </StackPanel>
-          <Button Grid.Column="1" Classes="accent small" Content="Usar"
+          <Button Grid.Column="1" Classes="small" Content="Usar"
                   Command="{Binding $parent[UserControl].((vm:EncounterListPageViewModel)DataContext).UseCommand}"
                   CommandParameter="{Binding}" ToolTip.Tip="Gera este Pokémon e abre no editor (grava só ao Aplicar)" />
         </Grid>
@@ -1028,7 +1028,7 @@
         </StackPanel>
         <TextBlock Grid.Column="3" Text="{Binding CountText}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
       </Grid>
-      <TextBlock DockPanel.Dock="Bottom" Text="As alterações valem imediatamente; exporte o save para gravar no arquivo."
+      <TextBlock DockPanel.Dock="Bottom" Text="As alterações valem imediatamente; Salvar grava o arquivo."
                  Classes="muted" FontSize="12" Margin="0,8,0,0" IsVisible="{Binding !IsFameTab}" />
       <Panel>
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding IsFlagsTab}">
@@ -1602,6 +1602,15 @@
 
   <DataTemplate DataType="vm:BatchPageViewModel">
     <Grid ColumnDefinitions="400,*" ColumnSpacing="16">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,10,10,0">
+          <TextBlock Text="{Binding Error}" Classes="legalBad" FontWeight="Normal" FontSize="13" TextWrapping="Wrap" IsVisible="{Binding HasError}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="👁  Pré-visualizar" Command="{Binding PreviewCommand}" />
+            <Button Classes="accent" Content="⚙  Aplicar" Command="{Binding ApplyCommand}" />
+            <Button Classes="ghost" Content="Limpar" Command="{Binding ClearCommand}" />
+          </StackPanel>
+        </StackPanel>
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="10" Margin="0,0,10,0">
           <StackPanel Spacing="2">
@@ -1648,14 +1657,9 @@
               </Grid>
             </StackPanel>
           </Border>
-          <TextBlock Text="{Binding Error}" Classes="legalBad" FontWeight="Normal" FontSize="13" TextWrapping="Wrap" IsVisible="{Binding HasError}" />
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="👁  Pré-visualizar" Command="{Binding PreviewCommand}" />
-            <Button Classes="accent" Content="⚙  Aplicar" Command="{Binding ApplyCommand}" />
-            <Button Classes="ghost" Content="Limpar" Command="{Binding ClearCommand}" />
-          </StackPanel>
         </StackPanel>
       </ScrollViewer>
+      </DockPanel>
       <DockPanel Grid.Column="1">
         <TextBlock DockPanel.Dock="Top" Text="{Binding Summary}" Classes="muted" TextWrapping="Wrap" Margin="0,4,0,10" />
         <Panel>
@@ -1851,27 +1855,35 @@
         </ItemsControl>
       </ScrollViewer>
       </DockPanel>
-      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,16">
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,10">
         <Button Classes="boxArrow" Content="‹" FontSize="18" Command="{Binding PreviousBoxCommand}"
                 ToolTip.Tip="Caixa anterior (arraste um Pokémon até aqui para trocar de caixa)" />
-        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-          <TextBlock Text="{Binding BoxName}" Classes="title" HorizontalAlignment="Center" />
-          <TextBlock Text="{Binding BoxLabel}" Classes="muted" HorizontalAlignment="Center" />
-          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0" HorizontalAlignment="Center">
-            <Button Content="CSV" Command="{Binding ExportReportCommand}" ToolTip.Tip="Exportar relatório (CSV)" />
-            <Button Content="✎ Renomear" Command="{Binding RenameCommand}" IsVisible="{Binding CanRename}" />
-            <ComboBox ItemsSource="{Binding Wallpapers}" SelectedIndex="{Binding WallpaperIndex}" IsVisible="{Binding HasWallpapers}" Width="210" ToolTip.Tip="Papel de parede da caixa (salvo no jogo)" />
-            <Button Content="📋 Showdown" ToolTip.Tip="Colar vários sets Showdown nos slots vazios desta caixa, ou copiar a caixa inteira no formato Showdown">
-              <Button.Flyout>
-                <MenuFlyout>
-                  <MenuItem Header="⇩ Colar equipe nos slots vazios" Command="{Binding PasteShowdownCommand}" />
-                  <MenuItem Header="⇧ Copiar a caixa (Showdown)" Command="{Binding CopyShowdownCommand}" />
-                </MenuFlyout>
-              </Button.Flyout>
-            </Button>
-          </StackPanel>
-        </StackPanel>
-        <Button Grid.Column="2" Classes="boxArrow" Content="›" FontSize="18" Command="{Binding NextBoxCommand}"
+        <!-- Espaco do tamanho do "⋯ Caixa": o titulo fica no centro da pagina, alinhado com as abas -->
+        <Border Grid.Column="1" Width="{Binding #BoxMenuButton.Bounds.Width}" />
+        <WrapPanel Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" ItemSpacing="10">
+          <TextBlock Text="{Binding BoxName}" Classes="title" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding BoxLabel}" Classes="muted" VerticalAlignment="Center" />
+        </WrapPanel>
+        <!-- Acoes da caixa num menu so: o cabecalho cabe numa linha mesmo em 1100 px -->
+        <Button x:Name="BoxMenuButton" Grid.Column="3" Classes="small" Content="⋯  Caixa" VerticalAlignment="Center"
+                ToolTip.Tip="Renomear, papel de parede, relatório CSV e equipe Showdown desta caixa">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <StackPanel Spacing="8" MinWidth="250">
+                <Button Classes="small" HorizontalAlignment="Stretch" Content="✎  Renomear caixa" Command="{Binding RenameCommand}" IsVisible="{Binding CanRename}" />
+                <StackPanel Spacing="4" IsVisible="{Binding HasWallpapers}">
+                  <TextBlock Text="Papel de parede" Classes="muted" FontSize="12" />
+                  <ComboBox ItemsSource="{Binding Wallpapers}" SelectedIndex="{Binding WallpaperIndex}" HorizontalAlignment="Stretch" ToolTip.Tip="Papel de parede da caixa (salvo no jogo)" />
+                </StackPanel>
+                <Separator />
+                <Button Classes="small" HorizontalAlignment="Stretch" Content="⇩  Colar equipe Showdown nos slots vazios" Command="{Binding PasteShowdownCommand}" />
+                <Button Classes="small" HorizontalAlignment="Stretch" Content="⇧  Copiar a caixa (Showdown)" Command="{Binding CopyShowdownCommand}" />
+                <Button Classes="small" HorizontalAlignment="Stretch" Content="⭳  Exportar relatório (CSV)" Command="{Binding ExportReportCommand}" />
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <Button Grid.Column="4" Classes="boxArrow" Content="›" FontSize="18" Command="{Binding NextBoxCommand}"
                 ToolTip.Tip="Próxima caixa (arraste um Pokémon até aqui para trocar de caixa)" />
       </Grid>
       <Border DockPanel.Dock="Top" Classes="card" Padding="10,8" Margin="0,0,0,12" MaxWidth="1100"
@@ -1890,7 +1902,8 @@
                         CommandParameter="{Binding}">
                   <Grid ColumnDefinitions="Auto,*">
                     <Image Source="{Binding Sprite}" Stretch="Uniform" Width="44" Height="40" />
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0">
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0"
+                                IsVisible="{Binding $parent[ItemsControl].Bounds.Width, Converter={x:Static c:WidthAtLeastConverter.Instance}, ConverterParameter=640}">
                       <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                       <StackPanel Orientation="Horizontal" Spacing="3">
                         <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="11" />
@@ -2104,7 +2117,7 @@
         <NumericUpDown Grid.Column="1" Minimum="0" Maximum="59" FormatString="0" Value="{Binding Minutes}" ToolTip.Tip="Minutos" />
         <NumericUpDown Grid.Column="2" Minimum="0" Maximum="59" FormatString="0" Value="{Binding Seconds}" ToolTip.Tip="Segundos" />
       </Grid>
-      <TextBlock Text="As alterações valem imediatamente; exporte o save para gravar no arquivo."
+      <TextBlock Text="As alterações valem imediatamente; Salvar grava o arquivo."
                  Classes="muted" FontSize="12" Margin="0,12,0,0" TextWrapping="Wrap" />
     </StackPanel>
     </ScrollViewer>
@@ -2146,7 +2159,8 @@
                               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,0,10">
                                 <StackPanel Spacing="2">
                                   <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                                  <TextBlock Text="{Binding Text}" Classes="muted" FontSize="13" TextWrapping="Wrap" />
+                                  <!-- Leitura: mais contraste que o cinza "muted", linhas de ~90 caracteres e mais espaco entre linhas -->
+                                  <TextBlock Text="{Binding Text}" FontSize="13" TextWrapping="Wrap" LineHeight="20" MaxWidth="760" HorizontalAlignment="Left" Opacity="0.82" />
                                 </StackPanel>
                                 <Border Grid.Column="1" Classes="chip" Background="{DynamicResource CardBorder}" VerticalAlignment="Top"
                                         IsVisible="{Binding Shortcut, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
@@ -2273,11 +2287,12 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
           <Button Content="◎  Todos os TMs" Command="{Binding GiveAllTMsCommand}"
                   ToolTip.Tip="Põe todos os TMs do jogo no bolso de TMs, com 99 de cada, sem tirar o que já está lá (HMs e TRs do mesmo bolso também entram)" />
-          <Button Classes="accent" Content="Gravar mochila" Command="{Binding SaveCommand}" />
+          <Button Classes="accent" Content="Aplicar mochila" Command="{Binding SaveCommand}" ToolTip.Tip="Leva os itens da tela para o save aberto; Salvar grava o arquivo" />
         </StackPanel>
       </Grid>
-      <ListBox DockPanel.Dock="Top" Classes="tabs" ItemsSource="{Binding Pouches}" SelectedItem="{Binding SelectedPouch}"
-               Margin="0,0,0,12" Background="Transparent">
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" ColumnSpacing="12" Margin="0,0,0,12">
+      <ListBox Classes="tabs" ItemsSource="{Binding Pouches}" SelectedItem="{Binding SelectedPouch}"
+               Background="Transparent">
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
         </ListBox.ItemsPanel>
@@ -2287,12 +2302,18 @@
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Top">
+          <TextBlock Text="{Binding SelectedPouch.FreeText}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+          <CheckBox Content="Mostrar todas as vagas" IsChecked="{Binding ShowEmptySlots}"
+                    ToolTip.Tip="Sem marcar, a mochila mostra os itens que você tem e algumas vagas livres para adicionar" />
+        </StackPanel>
+      </Grid>
       <!-- Itens em colunas, em linhas virtualizadas: so as linhas visiveis sao criadas (bolsos de ate ~260 slots) -->
       <Panel x:Name="BagArea">
         <ListBox Classes="plainRows" Background="Transparent">
           <ListBox.ItemsSource>
             <MultiBinding Converter="{x:Static c:ChunkRowsConverter.Instance}" ConverterParameter="330,4">
-              <Binding Path="SelectedPouch.Items" />
+              <Binding Path="SelectedPouch.VisibleItems" />
               <Binding ElementName="BagArea" Path="Bounds.Width" />
             </MultiBinding>
           </ListBox.ItemsSource>

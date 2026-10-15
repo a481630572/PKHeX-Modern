@@ -51,7 +51,9 @@ win.Width = 2600; Pump(20);
 sv = Tabs();
 var items = sv.GetVisualDescendants().OfType<ItemsControl>().First();
 Check("24 caixas cabem na janela larga", sv.Extent.Width <= sv.Viewport.Width + 1, $"extent {sv.Extent.Width:0} viewport {sv.Viewport.Width:0}");
-Check("abas centralizadas com o título", Math.Abs(CenterX(items) - CenterX(Title())) < 3, $"abas {CenterX(items):0} título {CenterX(Title()):0}");
+// O titulo e a contagem ficam lado a lado (cabecalho numa linha): o conjunto e que fica no centro.
+var titleGroup = (Control)Title().Parent!;
+Check("abas centralizadas com o título", Math.Abs(CenterX(items) - CenterX(titleGroup)) < 3, $"abas {CenterX(items):0} título {CenterX(titleGroup):0}");
 win.CaptureRenderedFrame()?.Save(Path.Combine(work, "wide.png"));
 Console.WriteLine(fails == 0 ? "TUDO OK" : $"{fails} FALHAS");
 return fails == 0 ? 0 : 1;

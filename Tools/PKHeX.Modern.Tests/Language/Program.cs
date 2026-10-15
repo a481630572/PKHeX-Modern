@@ -24,7 +24,7 @@ BankStorage.Root = Path.Combine(work, "bank"); SaveBackup.Folder = Path.Combine(
 // Unidade: exato, modelo, frases juntadas, prefixo de icone e texto sem traducao.
 Check("carrega en", Loc.Load(Loc.English) && Loc.IsTranslating);
 Check("exato", Loc.T("Caixas") == "Boxes");
-Check("modelo", Loc.T("Pikachu gravado em caixa 1, slot 2. Lembre-se de exportar o save.") == "Pikachu written to box 1, slot 2. Remember to export the save.");
+Check("modelo", Loc.T("Pikachu gravado em caixa 1, slot 2. Lembre-se de salvar.") == "Pikachu written to box 1, slot 2. Remember to save.");
 Check("modelo aninhado", Loc.T("Pikachu ({0})".Replace("{0}", "x")) == "Pikachu (x)");
 Check("nome do jogo intacto", Loc.T("Pikachu") == "Pikachu" && Loc.T("Thunderbolt") == "Thunderbolt");
 Check("frases juntadas", Loc.T("Nada para desfazer (Ctrl+Z). Nada para refazer (Ctrl+Y).") is var j && !j.Contains("Nada"));

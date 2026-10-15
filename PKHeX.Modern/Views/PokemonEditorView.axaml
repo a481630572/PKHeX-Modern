@@ -40,15 +40,19 @@
           <Image Source="{Binding Sprite}" Stretch="Uniform" />
         </Border>
         <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center" Spacing="6">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <TextBlock Text="{Binding SpeciesName}" Classes="title" />
-            <Button Content="QR" Classes="small" Command="{Binding QrCommand}" IsVisible="{Binding HasQr}" />
-            <Button Classes="genderToggle" Content="{Binding GenderSymbol}" Click="OnGenderClick" IsEnabled="{Binding CanToggleGender}"
+          <!-- Nome com fontes largas (ex.: Pokémon GB) encolhe em vez de empurrar gênero e shiny para fora da tela -->
+          <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="6">
+            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left"
+                     MaxWidth="{Binding $parent[StackPanel].Bounds.Width, Converter={x:Static c:SubtractConverter.Instance}, ConverterParameter=66}">
+              <TextBlock Text="{Binding SpeciesName}" Classes="title" />
+            </Viewbox>
+            <Button Grid.Column="1" Content="QR" Classes="small" Command="{Binding QrCommand}" IsVisible="{Binding HasQr}" />
+            <Button Grid.Column="2" Classes="genderToggle" Content="{Binding GenderSymbol}" Click="OnGenderClick" IsEnabled="{Binding CanToggleGender}"
                     VerticalAlignment="Center" ToolTip.Tip="{Binding GenderTip}" ToolTip.ShowOnDisabled="True" />
-            <Button x:Name="ShinyStar" Classes="shinyStar" Classes.on="{Binding IsShiny}" Content="{Binding ShinySymbol}"
+            <Button Grid.Column="3" x:Name="ShinyStar" Classes="shinyStar" Classes.on="{Binding IsShiny}" Content="{Binding ShinySymbol}"
                     IsEnabled="{Binding CanToggleShiny}" Click="OnShinyClick" VerticalAlignment="Center"
                     ToolTip.Tip="{Binding ShinyShortcutsTip}" ToolTip.ShowOnDisabled="True" />
-          </StackPanel>
+          </Grid>
           <ItemsControl ItemsSource="{Binding Types}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate>
@@ -61,19 +65,19 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <Border Classes="chip" Background="{DynamicResource Good}" IsVisible="{Binding ShowLegal}">
+          <DockPanel>
+            <Border DockPanel.Dock="Left" Margin="0,0,6,0" Classes="chip" Background="{DynamicResource Good}" IsVisible="{Binding ShowLegal}">
               <TextBlock Text="✓ Legal" />
             </Border>
-            <Border Classes="chip" Background="{DynamicResource Bad}" IsVisible="{Binding ShowIllegal}">
+            <Border DockPanel.Dock="Left" Margin="0,0,6,0" Classes="chip" Background="{DynamicResource Bad}" IsVisible="{Binding ShowIllegal}">
               <TextBlock Text="✕ Ilegal" />
             </Border>
-            <Border Classes="chip" Background="{DynamicResource CardBorder}" IsVisible="{Binding LegalMode}"
+            <Border DockPanel.Dock="Left" Margin="0,0,6,0" Classes="chip" Background="{DynamicResource CardBorder}" IsVisible="{Binding LegalMode}"
                     ToolTip.Tip="Modo legal ligado: só opções legais; mudanças que deixariam o Pokémon ilegal são desfeitas">
               <TextBlock Text="🛡" />
             </Border>
-            <TextBlock Text="{Binding Location}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
-          </StackPanel>
+            <TextBlock Text="{Binding Location}" Classes="muted" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          </DockPanel>
         </StackPanel>
       </Grid>
     </Border>

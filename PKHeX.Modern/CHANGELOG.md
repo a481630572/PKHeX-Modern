@@ -6,6 +6,15 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
+## 0.4.26 — 2026-10-15
+
+### 📱 Celular e telas pequenas
+- **Nome no editor:** com fontes largas (como Pokémon GB), o nome do Pokémon encolhe para caber e o gênero ♂/♀ e a estrela de shiny ficam sempre visíveis; o local ("equipe, posição 1") encurta com "…".
+- **Cartões da Equipe:** nomes longos (Blastoise, Charizard) encolhem em vez de serem cortados.
+- **Início:** os cartões de uma mesma linha têm a mesma altura.
+- **Barra lateral:** todas as páginas com a mesma altura (os emojis do Android tinham alturas diferentes e desalinhavam a lista), e uma linha separa o "Início" da lista quando ela rola.
+- **Caixas e Pokédex:** as abas das caixas ganharam folga das abas dos saves, e o painel de detalhes da Pokédex fica mais estreito em telas menores, para os filtros não cortarem.
+
 ## 0.4.25 — 2026-10-15
 
 ### 🎨 Interface

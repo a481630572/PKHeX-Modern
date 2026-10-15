@@ -242,23 +242,26 @@
             </ItemsControl>
           </ScrollViewer>
         </DockPanel>
-        <ListBox Classes="nav" Classes.dimmed="{Binding IsHelpOpen}" IsVisible="{Binding HasSave}" ItemsSource="{Binding Pages}"
-                 SelectedItem="{Binding CurrentPage}" Background="Transparent">
-          <!-- Sem virtualizacao: sao poucas paginas, e no Android a linha reciclada ficava desenhada por cima ao rolar -->
-          <ListBox.ItemsPanel>
-            <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
-          </ListBox.ItemsPanel>
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:PageViewModel">
-              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                <TextBlock Text="{Binding Icon}" Width="20" TextAlignment="Center" />
-                <TextBlock Grid.Column="1" Text="{Binding Title}" />
-                <TextBlock Grid.Column="2" Text="{Binding Shortcut}" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center"
-                           IsVisible="{x:Static local:App.ShowShortcuts}" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <!-- Recorte explicito: com a escala do Android, a lista rolada desenhava o item de cima por baixo do "Inicio" -->
+        <Border ClipToBounds="True" IsVisible="{Binding HasSave}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Margin="0,4,0,0" Padding="0,4,0,0">
+          <ListBox Classes="nav" Classes.dimmed="{Binding IsHelpOpen}" IsVisible="{Binding HasSave}" ItemsSource="{Binding Pages}"
+                   SelectedItem="{Binding CurrentPage}" Background="Transparent">
+            <!-- Sem virtualizacao: sao poucas paginas, e no Android a linha reciclada ficava desenhada por cima ao rolar -->
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:PageViewModel">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="{Binding Icon}" Width="20" TextAlignment="Center" Classes="navIcon" />
+                  <TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{Binding Shortcut}" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center"
+                             IsVisible="{x:Static local:App.ShowShortcuts}" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
       </DockPanel>
     </Border>
 

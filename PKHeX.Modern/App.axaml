@@ -664,7 +664,7 @@
         <Button Content="Living Dex" Command="{Binding ShowLivingDexCommand}" Classes.accent="{Binding ShowLivingDex}" />
       </StackPanel>
       <ContentControl Grid.Row="1" Content="{Binding LivingDex}" IsVisible="{Binding ShowLivingDex}" />
-    <Grid Grid.Row="1" ColumnDefinitions="*,16,320" IsVisible="{Binding !ShowLivingDex}">
+    <Grid Grid.Row="1" ColumnDefinitions="*,16,Auto" IsVisible="{Binding !ShowLivingDex}">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,10">
           <StackPanel Spacing="2">
@@ -770,7 +770,7 @@
       </DockPanel>
 
       <!-- Detalhes da especie selecionada -->
-      <Border Grid.Column="2" Classes="card">
+      <Border Grid.Column="2" Classes="card" Width="{Binding $parent[UserControl].Bounds.Width, Converter={x:Static c:WidthPickConverter.Instance}, ConverterParameter='1400,320,250'}">
         <Panel>
           <TextBlock Text="Clique numa espécie para ver onde estão os seus Pokémon e em quais Pokédex ela foi registrada."
                      Classes="muted" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasSelection}" />
@@ -1815,7 +1815,7 @@
   <!-- Caixas -->
   <DataTemplate DataType="vm:BoxesPageViewModel">
     <DockPanel>
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+      <DockPanel DockPanel.Dock="Top" Margin="0,4,0,10">
         <Button x:Name="SortButton" DockPanel.Dock="Right" Classes="small" Content="⇅  Ordenar" Margin="10,0,0,0" VerticalAlignment="Top"
                 ToolTip.Tip="Ordena a caixa aberta ou todas as caixas (Ctrl+Z desfaz)">
           <Button.Flyout>
@@ -1969,7 +1969,9 @@
                   <Image Source="{Binding Sprite}" Width="104" Height="92" Stretch="Uniform" />
                 </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="2">
-                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="20" />
+                  <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="20" />
+                  </Viewbox>
                   <TextBlock Text="{Binding Nickname}" Classes="muted" IsVisible="{Binding HasNickname}" />
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="{Binding Subtitle}" Classes="muted" FontSize="15" />

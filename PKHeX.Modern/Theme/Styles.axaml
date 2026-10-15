@@ -440,9 +440,18 @@
   <!-- Navegacao lateral -->
   <Style Selector="ListBox.nav ListBoxItem">
     <Setter Property="CornerRadius" Value="{DynamicResource Radius8}" />
-    <Setter Property="Padding" Value="12,5" />
+    <Setter Property="Padding" Value="12,0" />
     <Setter Property="Margin" Value="0,0.5" />
     <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.navIcon">
+    <Setter Property="Height" Value="18" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="LineHeight" Value="18" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
@@ -820,6 +829,8 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
   <Style Selector="Button.homeTile, Button.homeRecent, Button.homeParty">
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Background" Value="{DynamicResource CardBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
     <Setter Property="BorderThickness" Value="{DynamicResource CardBorderThickness}" />

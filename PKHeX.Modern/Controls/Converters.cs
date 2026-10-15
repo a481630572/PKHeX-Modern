@@ -84,3 +84,14 @@ public sealed class WidthPickConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>Largura menos um valor fixo (parametro), nunca negativa. Ex.: espaco do nome descontando botoes ao lado.</summary>
+public sealed class SubtractConverter : IValueConverter
+{
+    public static readonly SubtractConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is double d && d > 0 ? Math.Max(0, d - double.Parse(parameter as string ?? "0", CultureInfo.InvariantCulture)) : double.PositiveInfinity;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}

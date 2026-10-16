@@ -132,6 +132,34 @@ public sealed class BoxesPageViewModel : SlotPageViewModel
 
     public string BoxName => _sav is null ? "" : CoreAdapter.GetBoxName(_sav, CurrentBox);
 
+    /// <summary>Caixa aberta travada (nada muda nela ate destravar; ver Services.BoxLocks).</summary>
+    public bool IsLocked => _sav is not null && BoxLocks.IsLocked(_sav, CurrentBox);
+    public bool CanLock => _sav is not null && BoxLocks.CanLock(_sav);
+    public string LockText => IsLocked ? "🔓  Destravar caixa" : "🔒  Travar caixa";
+    public RelayCommand ToggleLockCommand => _toggleLock ??= new(() =>
+    {
+        if (_sav is null) return;
+        bool locked = !IsLocked;
+        BoxLocks.Set(_sav, CurrentBox, locked);
+        RefreshLocks();
+        Status?.Invoke(locked
+            ? $"{BoxName} travada: nada muda nela (arrastar, excluir, aplicar, ordenar, colar, lote) até destravar."
+            : $"{BoxName} destravada.");
+    });
+    private RelayCommand? _toggleLock;
+    /// <summary>Mensagem na barra de status (definida pelo MainViewModel).</summary>
+    public Action<string>? Status { get; set; }
+
+    private void RefreshLocks()
+    {
+        if (_sav is null) return;
+        for (int i = 0; i < BoxTabs.Count; i++)
+            BoxTabs[i].IsLocked = BoxLocks.IsLocked(_sav, i);
+        Raise(nameof(IsLocked));
+        Raise(nameof(LockText));
+        Raise(nameof(CanLock));
+    }
+
     /// <summary>Abas com o nome de cada caixa (clique ou pare em cima durante o arraste para trocar).</summary>
     public ObservableCollection<BoxTabViewModel> BoxTabs { get; } = [];
     public int FilledCount => Slots.Count(s => !s.IsEmpty);
@@ -182,6 +210,7 @@ public sealed class BoxesPageViewModel : SlotPageViewModel
         RefreshWallpaper();
         for (int i = 0; i < BoxTabs.Count; i++)
             BoxTabs[i].IsCurrent = i == CurrentBox;
+        RefreshLocks();
         SlotsLoaded?.Invoke();
         PreviousBoxCommand.NotifyCanExecuteChanged();
         NextBoxCommand.NotifyCanExecuteChanged();
@@ -251,7 +280,7 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
     public ObservableCollection<PouchViewModel> Pouches { get; } = [];
 
     private PouchViewModel? _selected;
-    public PouchViewModel? SelectedPouch { get => _selected; set { if (Set(ref _selected, value)) value?.Refresh(); } }
+    public PouchViewModel? SelectedPouch { get => _selected; set { if (Set(ref _selected, value)) { value?.Refresh(); FillCurrentPouchCommand.NotifyCanExecuteChanged(); } } }
 
     private bool _showEmptySlots;
     /// <summary>Mostra todas as vagas vazias do bolso (sem isso, so os itens que existem e algumas vagas para adicionar).</summary>
@@ -282,7 +311,8 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
         }
         SelectedPouch = Pouches.FirstOrDefault();
         Raise(nameof(IsAvailable));
-        GiveAllTMsCommand.NotifyCanExecuteChanged();
+        foreach (var c in (RelayCommand[])[GiveAllTMsCommand, GiveAllBallsCommand, GiveAllMedicineCommand, GiveAllBerriesCommand, FillCurrentPouchCommand])
+            c.NotifyCanExecuteChanged();
     }
 
     private void FillPouches(SaveFile sav, PlayerBag bag)
@@ -292,16 +322,34 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
             Pouches.Add(new PouchViewModel(bag, p, editable, CoreAdapter.GetItemNames(sav), sav.Context, sav.Version, OnItemChanged) { ShowEmpty = _showEmptySlots });
     }
 
-    /// <summary>Todos os TMs (e HMs/TRs do mesmo bolso) na quantidade maxima, sem apagar o que ja estava la.</summary>
-    public RelayCommand GiveAllTMsCommand => _giveAllTMs ??= new(GiveAllTMs, () => _bag?.Pouches.Any(p => p.Type == InventoryType.TMHMs) == true);
+    /// <summary>Todos os TMs (e HMs/TRs do mesmo bolso), 99 de cada, sem apagar o que ja estava la.</summary>
+    public RelayCommand GiveAllTMsCommand => _giveAllTMs ??= GiveAllCommand(InventoryType.TMHMs);
     private RelayCommand? _giveAllTMs;
+    /// <summary>Conjuntos prontos (menu "Encher bolso"): Poke Balls, remedios e berries do jogo.</summary>
+    public RelayCommand GiveAllBallsCommand => _giveAllBalls ??= GiveAllCommand(InventoryType.Balls);
+    private RelayCommand? _giveAllBalls;
+    public RelayCommand GiveAllMedicineCommand => _giveAllMedicine ??= GiveAllCommand(InventoryType.Medicine);
+    private RelayCommand? _giveAllMedicine;
+    public RelayCommand GiveAllBerriesCommand => _giveAllBerries ??= GiveAllCommand(InventoryType.Berries);
+    private RelayCommand? _giveAllBerries;
+    /// <summary>Todos os itens que cabem no bolso aberto (menos itens-chave, que mexem no andamento do jogo).</summary>
+    public RelayCommand FillCurrentPouchCommand => _fillCurrent ??= new(
+        () => { if (SelectedPouch is { } p) GiveAll(p.Type); },
+        () => _bag is not null && SelectedPouch is { Type: not InventoryType.KeyItems });
+    private RelayCommand? _fillCurrent;
 
-    private void GiveAllTMs()
+    private RelayCommand GiveAllCommand(InventoryType type) => new(() => GiveAll(type), () => _bag?.Pouches.Any(p => p.Type == type) == true);
+
+    /// <summary>
+    /// Da todos os itens que o jogo aceita nos bolsos do tipo, 99 de cada (ou o maximo do jogo, se for menor: HMs,
+    /// TMs da Gen 5+ e itens unicos ficam 1), em ordem numerica, sem apagar o que ja estava la.
+    /// </summary>
+    private void GiveAll(InventoryType type)
     {
         if (_sav is null || _bag is null)
             return;
         int given = 0, full = 0;
-        foreach (var pouch in _bag.Pouches.Where(p => p.Type == InventoryType.TMHMs))
+        foreach (var pouch in _bag.Pouches.Where(p => p.Type == type))
         {
             foreach (var id in pouch.GetAllItems())
             {
@@ -312,7 +360,6 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
                 else
                     given++;
             }
-            // 99 de cada (ou o maximo do jogo, se for menor: na Gen 5+ o TM nao se gasta e fica 1), em ordem numerica.
             foreach (var item in pouch.Items.Where(i => i.Index != 0))
                 item.Count = _bag.Clamp(pouch.Type, item.Index, 99);
             pouch.SortByIndex();
@@ -320,11 +367,16 @@ public sealed class BagPageViewModel(Action<string> status) : PageViewModel
         var index = SelectedPouch is { } sel ? Pouches.IndexOf(sel) : 0;
         Pouches.Clear();
         FillPouches(_sav, _bag);
-        SelectedPouch = Pouches.FirstOrDefault(p => p.Type == InventoryType.TMHMs) ?? Pouches.ElementAtOrDefault(index);
+        SelectedPouch = Pouches.FirstOrDefault(p => p.Type == type) ?? Pouches.ElementAtOrDefault(index);
         OnItemChanged();
-        status(full > 0
-            ? $"{given} TM(s) na mochila, com 99 de cada; {full} não couberam (bolso cheio). Aplique a mochila e salve para manter."
-            : $"{given} TM(s) na mochila, com 99 de cada. Aplique a mochila e salve para manter.");
+        if (type == InventoryType.TMHMs)
+            status(full > 0
+                ? $"{given} TM(s) na mochila, com 99 de cada; {full} não couberam (bolso cheio). Aplique a mochila e salve para manter."
+                : $"{given} TM(s) na mochila, com 99 de cada. Aplique a mochila e salve para manter.");
+        else
+            status(full > 0
+                ? $"{given} item(ns) no bolso, com 99 de cada; {full} não couberam (bolso cheio). Aplique a mochila e salve para manter."
+                : $"{given} item(ns) no bolso, com 99 de cada. Aplique a mochila e salve para manter.");
     }
 
     /// <summary>Mexeu num item: o save passa a ter alteracoes pendentes (antes, o Salvar gravava sem a mochila).</summary>
@@ -471,6 +523,9 @@ public sealed class BoxTabViewModel(string name, RelayCommand go) : ViewModelBas
     public RelayCommand GoCommand { get; } = go;
     private bool _isCurrent;
     public bool IsCurrent { get => _isCurrent; set => Set(ref _isCurrent, value); }
+    private bool _isLocked;
+    /// <summary>Caixa travada (cadeado na aba).</summary>
+    public bool IsLocked { get => _isLocked; set => Set(ref _isLocked, value); }
 }
 
 /// <summary>Um criterio do menu "Ordenar".</summary>

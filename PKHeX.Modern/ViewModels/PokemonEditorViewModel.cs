@@ -637,7 +637,30 @@ public sealed partial class PokemonEditorViewModel : ViewModelBase
         }
     }
     public int Level { get => _pk.CurrentLevel; set { _pk.CurrentLevel = (byte)Math.Clamp(value, 1, 100); Refresh(); } }
-    public int Nature { get => (int)_pk.StatAlignment; set { if (value >= 0 && value != (int)_pk.StatAlignment) { _pk.SetNature((Nature)value); Refresh(); } } }
+    public int Nature { get => (int)_pk.StatAlignment; set { if (value >= 0 && value != (int)_pk.StatAlignment) SetNatureKeepingShiny((Nature)value); } }
+
+    /// <summary>
+    /// Na Gen 3/4 a natureza vem do PID: trocar sorteia outro PID e o shiny se perdia. Aqui o shiny fica (PID com a
+    /// natureza nova que continua shiny) e, no modo legal, o Pokemon e gerado de novo a partir de um encontro real
+    /// com a natureza nova (o PID precisa casar com os IVs pelo metodo do jogo); se nao houver forma legal, volta.
+    /// </summary>
+    private void SetNatureKeepingShiny(Nature nature)
+    {
+        if (_pk.Format is not (3 or 4))
+        {
+            _pk.SetNature(nature);
+            Refresh();
+            return;
+        }
+        var before = _pk.Clone();
+        bool wasShiny = _pk.IsShiny;
+        _guardSuspended = LegalMode;
+        _pk.SetNature(nature);
+        if (wasShiny && !_pk.IsShiny)
+            CoreAdapter.SetShinyPIDWithNature(_pk, nature);
+        RaiseAll();
+        LegalizeOrRestore(before);
+    }
     public int HeldItem { get => _pk.HeldItem; set { if (value >= 0) { _pk.HeldItem = value; Refresh(); Raise(nameof(SelectedItem)); Raise(nameof(HasItem)); Raise(nameof(HeldItemIcon)); Raise(nameof(HeldItemTip)); } } }
     /// <summary>Descricao e onde conseguir o item segurado (AllGenWiki), quando houver.</summary>
     public string? HeldItemTip => _pk.HeldItem > 0 ? ItemInfo.GetTooltip(CoreAdapter.GetHeldItemName(_pk), _pk.Context.Generation, TipVersion) : null;
@@ -1239,7 +1262,49 @@ public sealed partial class PokemonEditorViewModel : ViewModelBase
             _isNew = false;
         RaiseAll(); // atualiza todos os campos
         _status(error ?? "Set Showdown importado. Clique em Aplicar para gravar.");
+        // Modo legal: um set ilegal e gerado de novo tentando manter o set inteiro (IVs, habilidade, EVs, Tera...).
+        if (LegalMode && !IsLegal && error is null && _sav is not null && ShowdownParsing.TryParseAnyLanguage(text, out var set) && set.Species == _pk.Species)
+        {
+            _ = LegalizeSetAsync(before, set);
+            return;
+        }
         LegalizeOrRestore(before);
+    }
+
+    private async Task LegalizeSetAsync(PKM before, IBattleTemplate set)
+    {
+        IsLegalizing = true;
+        _status($"Legalizando o set de {SpeciesName}...");
+        try
+        {
+            var current = _pk.Clone();
+            var sav = _sav!;
+            var (result, message, notKept) = await Task.Run(() =>
+            {
+                var r = EncounterDatabase.LegalizeSet(sav, current, set, out var m, out var n);
+                return (r, m, n);
+            });
+            if (result is null)
+            {
+                RestoreAfterFailedLegalize(before);
+                _status($"Modo legal: set não importado, não há forma legal neste jogo ({message}).");
+                return;
+            }
+            _pk = result;
+            _isNew = false;
+            RaiseAll();
+            _status($"Set legalizado a partir de: {message}{ShowdownBatch.DescribeNotKept(notKept)}. Clique em Aplicar para gravar.");
+        }
+        catch (Exception ex)
+        {
+            RestoreAfterFailedLegalize(before);
+            _status($"Legalizar: erro ({ex.Message})");
+        }
+        finally
+        {
+            IsLegalizing = false;
+            _guardSuspended = false;
+        }
     }
 
     internal Func<PKM, LegalityAnalysis> AnalyzeLegality { get; set; } = pk => new LegalityAnalysis(pk);

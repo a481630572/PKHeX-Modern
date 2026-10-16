@@ -3,7 +3,12 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <!-- Atualizacao automatica: abrir o instalador com o APK novo da release -->
   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-  <application android:allowBackup="false" android:icon="@drawable/app_icon" android:label="PKHeX Modern">
+  <!-- Saves dos emuladores (Services/EmulatorSaves): ler e gravar nas pastas do RetroArch, DraStic, Citra... -->
+  <!-- Android 11+: "acesso a todos os arquivos" (o usuario liga nas configuracoes); ate o Android 10: permissao comum. -->
+  <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+  <application android:allowBackup="false" android:requestLegacyExternalStorage="true" android:icon="@drawable/app_icon" android:label="PKHeX Modern">
     <provider android:name="androidx.core.content.FileProvider"
               android:authorities="io.github.carlosmozart.pkhexmodern.updates"
               android:exported="false" android:grantUriPermissions="true">

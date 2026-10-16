@@ -11,6 +11,8 @@ public sealed class AppSettings
     /// <summary>Saves abertos por ultimo (mais recente primeiro), para o Inicio.</summary>
     public System.Collections.Generic.List<string> RecentSaves { get; set; } = [];
     public bool OpenLastSaveOnStartup { get; set; }
+    /// <summary>Android: procurar os saves dos emuladores na memoria do aparelho (Services.EmulatorSaves).</summary>
+    public bool EmulatorScan { get; set; }
     /// <summary>Ao clicar num Pokemon ilegal, perguntar se quer legalizar (desligado = so abre no editor).</summary>
     public bool AskLegalizeOnClick { get; set; } = true;
     public bool DarkTheme { get; set; } = true;
@@ -29,6 +31,8 @@ public sealed class AppSettings
     public bool HideSaveSID { get; set; }
     /// <summary>Pastas de arquivos .pk* usadas como bancos externos (pagina Bank).</summary>
     public System.Collections.Generic.List<string> ExternalBankFolders { get; set; } = [];
+    /// <summary>Caixas travadas por arquivo de save (caminho completo → indices das caixas). Ver Services.BoxLocks.</summary>
+    public System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<int>> LockedBoxes { get; set; } = new(System.StringComparer.OrdinalIgnoreCase);
     /// <summary>Modo legal: o editor so oferece opcoes legais e nao deixa aplicar um Pokemon ilegal.</summary>
     public bool LegalMode { get; set; } = true;
     /// <summary>Modo Hardcore: nada de editar dados (desafios, RetroAchievements); mover, trocar e soltar Pokemon continuam.</summary>

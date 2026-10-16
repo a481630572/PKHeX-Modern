@@ -22,6 +22,8 @@ public sealed class SlotHistory(SaveFile sav, int limit = 50)
 
     private readonly List<Snapshot> _undo = [];
     private readonly Stack<Snapshot> _redo = new();
+    /// <summary>O ultimo Record foi recusado (caixa travada): o Discard/Rollback seguinte nao apaga nada.</summary>
+    private bool _blocked;
 
     public bool CanUndo => _undo.Count > 0;
     /// <summary>Descricao de cada alteracao que pode ser desfeita, da mais antiga para a mais nova.</summary>
@@ -38,6 +40,17 @@ public sealed class SlotHistory(SaveFile sav, int limit = 50)
     public void Record(string description, params Key[] keys)
     {
         keys = [.. keys.Distinct()];
+        // Caixa travada: recusa antes de qualquer gravacao. Um Discard/Rollback de quem tratar o erro nao pode
+        // apagar o registro anterior, entao fica marcado que este Record nao entrou.
+        foreach (var k in keys)
+        {
+            if (k.Box >= 0 && BoxLocks.IsLocked(sav, k.Box))
+            {
+                _blocked = true;
+                throw BoxLocks.Block(sav, k.Box);
+            }
+        }
+        _blocked = false;
         _undo.Add(Capture(description, keys));
         if (_undo.Count > limit)
             _undo.RemoveAt(0);
@@ -47,6 +60,11 @@ public sealed class SlotHistory(SaveFile sav, int limit = 50)
     /// <summary>Descarta o ultimo registro (a alteracao nao aconteceu, ex.: erro ao mover).</summary>
     public void Discard()
     {
+        if (_blocked)
+        {
+            _blocked = false;
+            return;
+        }
         if (CanUndo)
             _undo.RemoveAt(_undo.Count - 1);
     }
@@ -54,6 +72,11 @@ public sealed class SlotHistory(SaveFile sav, int limit = 50)
     /// <summary>Volta os slots do ultimo registro e o descarta, sem refazer (uma operacao em lote que falhou no meio).</summary>
     public void Rollback()
     {
+        if (_blocked)
+        {
+            _blocked = false;
+            return;
+        }
         if (!CanUndo)
             return;
         var snap = _undo[^1];

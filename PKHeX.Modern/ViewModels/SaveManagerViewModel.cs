@@ -39,6 +39,46 @@ public sealed class SaveManagerViewModel : PageViewModel
         RestoreCommand = new RelayCommand(p => { if (p is BackupEntryViewModel b && b.Source is { } src) _ = RestoreToAsync(b, src); });
         DeleteBackupCommand = new RelayCommand(p => { if (p is BackupEntryViewModel b) _ = DeleteBackupAsync(b); });
         OpenCommand = new RelayCommand(p => { if (p is SaveEntryViewModel e) _open(e.Path); });
+        SearchEmulatorsCommand = new RelayCommand(() => _ = SearchEmulatorsAsync());
+    }
+
+    /// <summary>Android: botao "Saves dos emuladores" (procura nas pastas padrao de cada emulador).</summary>
+    public bool CanSearchEmulators => EmulatorSaves.IsAvailable;
+    public RelayCommand SearchEmulatorsCommand { get; }
+    public string EmulatorButtonText => _settings.EmulatorScan && EmulatorSaves.CanRead ? "🎮  Emuladores ✓" : "🎮  Saves dos emuladores";
+
+    /// <summary>
+    /// Liga a busca nos emuladores. Sem o acesso a todos os arquivos, explica e abre a tela do Android; a lista
+    /// e relida quando o usuario volta ao app (<see cref="EmulatorSaves.Resumed"/>).
+    /// </summary>
+    public async Task SearchEmulatorsAsync()
+    {
+        if (!EmulatorSaves.IsAvailable)
+            return;
+        if (!EmulatorSaves.CanRead)
+        {
+            if (!await _confirm("Saves dos emuladores",
+                    "Para achar sozinho os saves do RetroArch, DraStic, melonDS, Dolphin, Azahar/Citra, Eden e outros, o Android precisa dar ao app o “acesso a todos os arquivos”. "
+                    + "Na tela que vai abrir, ligue a opção para o PKHeX Modern e volte ao app. Os saves são lidos e gravados no lugar original, com backup antes de gravar.",
+                    "Abrir configuração"))
+                return;
+            _settings.EmulatorScan = true;
+            _settings.Save();
+            EmulatorSaves.RequestAccess?.Invoke();
+            return;
+        }
+        _settings.EmulatorScan = true;
+        _settings.Save();
+        Raise(nameof(EmulatorButtonText));
+        await RefreshAsync();
+    }
+
+    /// <summary>Voltou ao app (ex.: depois de dar o acesso): rele se a busca nos emuladores esta ligada.</summary>
+    public void OnResumed()
+    {
+        Raise(nameof(EmulatorButtonText));
+        if (_settings.EmulatorScan && EmulatorSaves.CanRead)
+            _ = RefreshAsync();
     }
 
     /// <summary>O save esta aberto numa aba? (definido pelo MainViewModel; sem ele, so o save carregado conta)</summary>
@@ -228,6 +268,23 @@ public sealed class SaveManagerViewModel : PageViewModel
         }
         var folder = Folder;
         var (entries, skipped) = await Task.Run(() => (SaveLibrary.Scan(folder, out var s), s));
+        int emulators = 0;
+        if (_settings.EmulatorScan && EmulatorSaves.CanRead && EmulatorSaves.StorageRoot is { } root)
+        {
+            try
+            {
+                var found = await Task.Run(() => SaveLibrary.ReadFound(EmulatorSaves.Find(root)));
+                var known = new HashSet<string>(entries.Select(e => e.Path), StringComparer.OrdinalIgnoreCase);
+                var extra = found.Where(f => known.Add(f.Path)).ToList();
+                emulators = extra.Count;
+                entries = [.. entries, .. extra];
+            }
+            catch (Exception ex)
+            {
+                CrashLog.Write(ex);
+                _status($"Não foi possível procurar os saves dos emuladores: {ex.Message}");
+            }
+        }
 
         _all = [.. entries.Select(e => new SaveEntryViewModel(e)
         {
@@ -237,7 +294,7 @@ public sealed class SaveManagerViewModel : PageViewModel
         if (_generation is { } gen && !_all.Any(e => e.Entry.Generation == gen))
             _generation = null;
         Generations = [.. _all.Select(e => (int)e.Entry.Generation).Distinct().Order().Select(g => new GenerationFilterViewModel(g) { IsActive = g == _generation })];
-        Summary = $"{entries.Count} save(s)" + (skipped > 0 ? $" · {skipped} arquivo(s) ignorado(s) por não serem saves reconhecidos" : "");
+        Summary = $"{entries.Count} save(s)" + (emulators > 0 ? " · " + string.Format(Loc.T("{0} dos emuladores"), emulators) : "") + (skipped > 0 ? $" · {skipped} arquivo(s) ignorado(s) por não serem saves reconhecidos" : "");
         IsLoading = false;
         foreach (var p in (string[])[nameof(IsEmpty), nameof(ShowLoading), nameof(FolderExists), nameof(Generations), nameof(GenerationFilter), nameof(Entries), nameof(HasEntries)])
             Raise(p);

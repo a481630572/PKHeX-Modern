@@ -31,6 +31,61 @@ public sealed class MainActivity : AvaloniaMainActivity<App>
             return true;
         };
         EnterFullscreen();
+        SetUpEmulatorSaves();
+    }
+
+    // Saves dos emuladores: a raiz da memoria e o "acesso a todos os arquivos" (Android 11+) ou a permissao comum.
+    private void SetUpEmulatorSaves()
+    {
+        var root = global::Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
+        if (string.IsNullOrEmpty(root))
+            return;
+        PKHeX.Modern.Services.EmulatorSaves.StorageRoot = root;
+        PKHeX.Modern.Services.EmulatorSaves.HasAccess = HasStorageAccess;
+        PKHeX.Modern.Services.EmulatorSaves.RequestAccess = RequestStorageAccess;
+    }
+
+    private bool HasStorageAccess()
+    {
+        if (System.OperatingSystem.IsAndroidVersionAtLeast(30))
+            return global::Android.OS.Environment.IsExternalStorageManager;
+        return CheckSelfPermission(global::Android.Manifest.Permission.WriteExternalStorage) == Permission.Granted;
+    }
+
+    private void RequestStorageAccess()
+    {
+        try
+        {
+            if (System.OperatingSystem.IsAndroidVersionAtLeast(30))
+            {
+                var intent = new global::Android.Content.Intent(global::Android.Provider.Settings.ActionManageAppAllFilesAccessPermission,
+                    global::Android.Net.Uri.Parse("package:" + PackageName));
+                StartActivity(intent);
+            }
+            else
+                RequestPermissions([global::Android.Manifest.Permission.ReadExternalStorage, global::Android.Manifest.Permission.WriteExternalStorage], 41);
+        }
+        catch (System.Exception ex)
+        {
+            // Alguns aparelhos nao tem a tela por app: abre a lista geral de "acesso a todos os arquivos".
+            PKHeX.Modern.Services.CrashLog.Write(ex);
+            if (System.OperatingSystem.IsAndroidVersionAtLeast(30))
+                StartActivity(new global::Android.Content.Intent(global::Android.Provider.Settings.ActionManageAllFilesAccessPermission));
+        }
+    }
+
+    // Voltou das configuracoes (ou do pedido de permissao): a pagina Saves rele com o acesso novo.
+    protected override void OnResume()
+    {
+        base.OnResume();
+        PKHeX.Modern.Services.EmulatorSaves.Resumed?.Invoke();
+    }
+
+    public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+    {
+        base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 41)
+            PKHeX.Modern.Services.EmulatorSaves.Resumed?.Invoke();
     }
 
     // Tela cheia (modo imersivo): sem barra de status e de navegacao; deslizar da borda mostra as duas por um tempo.

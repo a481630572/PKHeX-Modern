@@ -19,13 +19,19 @@ public static class CrashLog
     {
         Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
+            if (e.Exception is BoxLockedException)
+            {
+                e.Handled = true; // caixa travada: o aviso ja foi para a barra de status
+                return;
+            }
             Write(e.Exception);
             e.Handled = true; // o app continua aberto
             report($"Erro inesperado: {e.Exception.Message} (detalhes em {FilePath})");
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            Write(e.Exception);
+            if (e.Exception.InnerException is not BoxLockedException)
+                Write(e.Exception);
             e.SetObserved();
         };
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>

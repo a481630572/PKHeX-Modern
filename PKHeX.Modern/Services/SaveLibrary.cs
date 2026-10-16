@@ -81,6 +81,21 @@ public static class SaveLibrary
             .ThenBy(e => e.Generation).ThenBy(e => e.Game).ThenBy(e => System.IO.Path.GetFileName(e.Path))];
     }
 
+    /// <summary>
+    /// Saves achados nas pastas dos emuladores (Android, <see cref="EmulatorSaves"/>): cada um confere pelo Core e
+    /// entra num grupo com o nome do emulador, depois dos grupos da pasta de saves.
+    /// </summary>
+    public static IReadOnlyList<SaveEntry> ReadFound(IEnumerable<EmulatorSaves.Found> found)
+    {
+        var result = new List<SaveEntry>();
+        foreach (var f in found)
+        {
+            if (ReadOne(f.Path) is { } entry)
+                result.Add(entry with { Group = string.Format(Loc.T("Emulador · {0}"), f.Source), GroupOrder = Consoles.Length + 1 });
+        }
+        return [.. result.OrderBy(e => e.Group, StringComparer.OrdinalIgnoreCase).ThenBy(e => e.Generation).ThenBy(e => e.Game)];
+    }
+
     /// <summary>Resumo de um arquivo avulso (ex.: um backup). Null se nao for um save.</summary>
     public static SaveEntry? ReadOne(string path) => TryRead(System.IO.Path.GetDirectoryName(ZipSaves.FileOf(path)) ?? "", path);
 

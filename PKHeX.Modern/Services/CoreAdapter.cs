@@ -805,6 +805,33 @@ public static class CoreAdapter
         or (ushort)PKHeX.Core.Species.Basculegion or (ushort)PKHeX.Core.Species.Oinkologne;
 
     /// <summary>
+    /// Gen 3/4 (natureza = PID % 25): procura um PID com a natureza pedida que continue shiny, com o mesmo genero e o
+    /// mesmo bit de habilidade. Unown fica de fora (a letra tambem vem do PID). Nao garante a sequencia do jogo:
+    /// no modo legal, o editor gera de novo a partir de um encontro.
+    /// </summary>
+    public static bool SetShinyPIDWithNature(PKM pk, Nature nature)
+    {
+        if (pk.Format is not (3 or 4) || pk.Species == (ushort)Species.Unown)
+            return false;
+        var tsv = (uint)(pk.TID16 ^ pk.SID16);
+        var ratio = pk.PersonalInfo.Gender;
+        var gender = pk.Gender;
+        var abit = pk.PID & 1;
+        for (int i = 0; i < 2_000_000; i++)
+        {
+            var low = (uint)Random.Shared.Next(0x10000);
+            var high = (low ^ tsv ^ (uint)Random.Shared.Next(8)) & 0xFFFF;
+            var pid = (high << 16) | low;
+            if (pid % 25 != (uint)nature || (pid & 1) != abit || EntityGender.GetFromPIDAndRatio(pid, ratio) != gender)
+                continue;
+            pk.PID = pid;
+            pk.RefreshChecksum();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Troca o genero como o jogo permitiria: nas especies em que a forma e o genero, troca a forma junto; da Gen 3 a
     /// 5 o genero vem do PID (gera outro PID com a mesma natureza); da Gen 6 em diante e um campo proprio.
     /// </summary>

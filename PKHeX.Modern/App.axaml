@@ -2008,8 +2008,13 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:BoxTabViewModel">
-              <Button Classes="boxTab" Classes.current="{Binding IsCurrent}" Content="{Binding Name}" Command="{Binding GoCommand}"
-                      ToolTip.Tip="Ir para esta caixa (durante o arraste, pare em cima para trocar)" />
+              <Button Classes="boxTab" Classes.current="{Binding IsCurrent}" Command="{Binding GoCommand}"
+                      ToolTip.Tip="Ir para esta caixa (durante o arraste, pare em cima para trocar)">
+                <StackPanel Orientation="Horizontal" Spacing="3">
+                  <TextBlock Text="🔒" FontSize="10" VerticalAlignment="Center" IsVisible="{Binding IsLocked}" />
+                  <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -2021,6 +2026,7 @@
         <!-- Espaco do tamanho do "⋯ Caixa": o titulo fica no centro da pagina, alinhado com as abas -->
         <Border Grid.Column="1" Width="{Binding #BoxMenuButton.Bounds.Width}" />
         <WrapPanel Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" ItemSpacing="10">
+          <TextBlock Text="🔒" Classes="title" VerticalAlignment="Center" IsVisible="{Binding IsLocked}" ToolTip.Tip="Caixa travada: destrave em “⋯ Caixa”" />
           <TextBlock Text="{Binding BoxName}" Classes="title" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
           <TextBlock Text="{Binding BoxLabel}" Classes="muted" VerticalAlignment="Center" />
         </WrapPanel>
@@ -2030,6 +2036,8 @@
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight">
               <StackPanel Spacing="8" MinWidth="250">
+                <Button Classes="small" HorizontalAlignment="Stretch" Content="{Binding LockText}" Command="{Binding ToggleLockCommand}" IsVisible="{Binding CanLock}"
+                        ToolTip.Tip="Caixa travada não muda: arrastar, excluir, aplicar, ordenar, colar e edição em lote são recusados até destravar. Fica salvo para este save." />
                 <Button Classes="small" HorizontalAlignment="Stretch" Content="✎  Renomear caixa" Command="{Binding RenameCommand}" IsVisible="{Binding CanRename}" />
                 <StackPanel Spacing="4" IsVisible="{Binding HasWallpapers}">
                   <TextBlock Text="Papel de parede" Classes="muted" FontSize="12" />
@@ -2447,8 +2455,21 @@
       <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
         <TextBlock Text="Mochila" Classes="title" />
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-          <Button Content="◎  Todos os TMs" Command="{Binding GiveAllTMsCommand}"
-                  ToolTip.Tip="Põe todos os TMs do jogo no bolso de TMs, com 99 de cada, sem tirar o que já está lá (HMs e TRs do mesmo bolso também entram)" />
+          <Button Content="◎  Encher bolso ▾" ToolTip.Tip="Conjuntos prontos: põe todos os itens do tipo, com 99 de cada e em ordem numérica, sem tirar o que já está lá">
+            <Button.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                <MenuItem Header="Todos os TMs" Command="{Binding GiveAllTMsCommand}"
+                          ToolTip.Tip="Põe todos os TMs do jogo no bolso de TMs, com 99 de cada, sem tirar o que já está lá (HMs e TRs do mesmo bolso também entram)" />
+                <MenuItem Header="Todas as Poké Balls" Command="{Binding GiveAllBallsCommand}" />
+                <MenuItem Header="Todos os remédios" Command="{Binding GiveAllMedicineCommand}"
+                          ToolTip.Tip="Poções, curas de status, Revives, PP e vitaminas do bolso de remédios (Gen 4 em diante)" />
+                <MenuItem Header="Todas as berries" Command="{Binding GiveAllBerriesCommand}" />
+                <Separator />
+                <MenuItem Header="Tudo no bolso aberto" Command="{Binding FillCurrentPouchCommand}"
+                          ToolTip.Tip="Todos os itens que o jogo aceita no bolso aberto, até onde couber. Itens-chave ficam de fora, porque mexem no andamento do jogo." />
+              </MenuFlyout>
+            </Button.Flyout>
+          </Button>
           <Button Classes="accent" Content="Aplicar mochila" Command="{Binding SaveCommand}" ToolTip.Tip="Leva os itens da tela para o save aberto; Salvar grava o arquivo" />
         </StackPanel>
       </Grid>

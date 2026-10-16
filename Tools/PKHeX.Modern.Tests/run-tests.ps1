@@ -12,6 +12,9 @@ $suites = [ordered]@{
     'DuplicateAudit' = @{}
     'LivingDexApply' = @{}
     'RoamerTMsDex' = @{ 'fr.sav' = 'fire red.sav'; 'em.sav' = 'Pokemon Emerald Version.sav' }
+    'SmallTools' = @{ 'fr.sav' = 'fire red.sav' }
+    'EmulatorSaves' = @{ 'fr.sav' = 'fire red.sav'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'moon.sav' = 'moon.sav' }
+    'ShowdownLegal' = @{ 'fr.sav' = 'fire red.sav'; 'sv.sav' = 'Scarlet'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'sh.sav' = 'shield' }
     'GameStage4' = @{ 'em.sav' = 'Pokemon Emerald Version.sav'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'or.sav' = 'Omega Ruby.sav'; 'ru.sav' = 'Ruby.sav'; 'sa.sav' = 'Sapphire.sav' }
     'UnlockShortcuts' = @{ 'y.sav' = 'Pokemon Y'; 'moon.sav' = 'moon.sav'; 'um.sav' = 'Pok?mon Ultra Moon' }
     'DexComplete' = @{ 'red.sav' = 'POKEMON RED-0.sav'; 'cr.sav' = 'Pokemon Crystal Version.sav'; 'em.sav' = 'Pokemon Emerald Version.sav'; 'hg.sav' = 'Pokemon Heart Gold Version.sav'; 'bw.sav' = 'Pokemon - Black Version.sav'; 'y.sav' = 'Pokemon Y'; 'moon.sav' = 'moon.sav'; 'sh.sav' = 'shield'; 'sv.sav' = 'Scarlet'; 'za.sav' = 'ZA.sav' }

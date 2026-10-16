@@ -105,6 +105,7 @@ public sealed partial class MainView : UserControl
                         vm.Status = saveFolder.LastSummary;
                 };
                 vm.SaveManager.DescribeFolder = () => saveFolder.FolderName is { } name ? "📁 " + name : "Nenhuma pasta escolhida: toque em “Escolher pasta...”";
+                Services.EmulatorSaves.Resumed = vm.SaveManager.OnResumed;
             }
             if (BankFolders is { } folders)
             {

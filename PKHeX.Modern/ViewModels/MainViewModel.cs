@@ -18,6 +18,8 @@ public sealed partial class MainViewModel : ViewModelBase
     public MainViewModel(AppSettings? settings = null)
     {
         Settings = settings ?? new AppSettings();
+        BoxLocks.Settings = Settings;
+        BoxLocks.Report = message => Status = message;
         OpenLastCommand = new RelayCommand(() => { if (HasLastSave) _ = OpenAsync(Settings.LastSavePath!); });
         // So a interface e em portugues; nomes do jogo (especies, golpes, itens) seguem o ingles do PKHeX.
         CoreAdapter.SetLanguage("en");
@@ -154,6 +156,7 @@ public sealed partial class MainViewModel : ViewModelBase
         Bank.UseVariant = UseVariantAsync;
         Boxes.Sort = SortBoxes;
         Boxes.Prompt = PromptAsync;
+        Boxes.Status = message => Status = message;
         ClearMarksCommand = new RelayCommand(ClearMarks);
         InitializeTouchCommands();
         InitializeShowdownTeam();
@@ -2057,15 +2060,31 @@ public sealed partial class MainViewModel : ViewModelBase
         if (_sav is null)
             return;
         int first = all ? 0 : Boxes.CurrentBox, last = all ? _sav.BoxCount - 1 : Boxes.CurrentBox;
-        var keys = new List<SlotHistory.Key>();
+        // "Todas as caixas" pula as travadas: cada trecho seguido de caixas livres e ordenado por si.
+        var runs = new List<(int First, int Last)>();
+        int skipped = 0;
         for (int b = first; b <= last; b++)
-            for (int i = 0; i < _sav.BoxSlotCount; i++)
-                keys.Add(SlotHistory.KeyOf(b, i));
+        {
+            if (all && BoxLocks.IsLocked(_sav, b)) { skipped++; continue; }
+            if (runs.Count > 0 && runs[^1].Last == b - 1) runs[^1] = (runs[^1].First, b);
+            else runs.Add((b, b));
+        }
+        if (runs.Count == 0)
+        {
+            Status = "Todas as caixas estão travadas: nada para ordenar.";
+            return;
+        }
+        var keys = new List<SlotHistory.Key>();
+        foreach (var (a, z) in runs)
+            for (int b = a; b <= z; b++)
+                for (int i = 0; i < _sav.BoxSlotCount; i++)
+                    keys.Add(SlotHistory.KeyOf(b, i));
         _history!.Record($"ordenar {(all ? "todas as caixas" : CoreAdapter.GetBoxName(_sav, first))} ({option.Name})", [.. keys]);
         string? error = null;
         try
         {
-            CoreAdapter.SortBoxes(_sav, option, first, last);
+            foreach (var (a, z) in runs)
+                CoreAdapter.SortBoxes(_sav, option, a, z);
         }
         catch (Exception ex)
         {
@@ -2074,7 +2093,8 @@ public sealed partial class MainViewModel : ViewModelBase
         IsDirty = true;
         OnHistoryChanged();
         RefreshSlots();
-        Status = error is not null ? $"Erro ao ordenar: {error}. Ctrl+Z volta ao estado anterior." : $"{(all ? "Todas as caixas ordenadas" : $"{CoreAdapter.GetBoxName(_sav, first)} ordenada")}: {option.Name}. Ctrl+Z desfaz.";
+        Status = error is not null ? $"Erro ao ordenar: {error}. Ctrl+Z volta ao estado anterior." : $"{(all ? "Todas as caixas ordenadas" : $"{CoreAdapter.GetBoxName(_sav, first)} ordenada")}: {option.Name}. Ctrl+Z desfaz."
+            + (skipped > 0 ? " " + string.Format(Loc.T("{0} caixa(s) travada(s) ficaram como estavam."), skipped) : "");
     }
 
     /// <summary>Criar PKM: abre o editor em branco no primeiro slot vazio da caixa atual.</summary>

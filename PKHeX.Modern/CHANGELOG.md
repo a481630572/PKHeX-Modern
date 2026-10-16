@@ -6,6 +6,24 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
+## 0.4.28 — 2026-10-16
+
+### 📱 Android
+- **Saves dos emuladores:** o botão “🎮 Saves dos emuladores” da página Saves acha sozinho os saves do RetroArch, DraStic, melonDS, Dolphin, Azahar/Citra/Lime3DS, Eden/Yuzu, mGBA, My Boy! e Pizza Boy, e os que ficam ao lado das ROMs. Pede uma vez o “acesso a todos os arquivos” e grava no arquivo original, com backup.
+
+### ✨ Legalidade
+- **Set do Showdown legal:** no modo legal, colar um set ilegal gera um Pokémon legal deste jogo mantendo IVs, habilidade, natureza, gênero, shiny, EVs, golpes e Tera Type sempre que possível (Hyper Training, mentas e cápsulas quando o jogo permite), e avisa o que não deu para manter.
+- **Golpes de TM/TR no Legalizar:** em Sword/Shield e Scarlet/Violet, o Legalizar marca o registro de TM/TR, então golpes de TM do Pokémon não são mais trocados por outros.
+
+### 📦 Caixas
+- **Travar caixa:** em “⋯ Caixa”, a caixa fica protegida contra arrastar, excluir, aplicar, colar, edição em lote, fábrica de ovos e Living Dex até destravar; “Ordenar todas as caixas” pula as travadas. Cadeado na aba e trava salva por save.
+
+### ✏️ Editor
+- **Natureza mantendo o shiny (Gen 3/4):** trocar a natureza de um shiny não tira mais o shiny; no modo legal, o Pokémon é gerado de novo com a natureza nova, legal e shiny (antes a mudança era desfeita).
+
+### 🎒 Mochila
+- **Encher bolso:** conjuntos prontos com todos os TMs, todas as Poké Balls, todos os remédios, todas as berries ou tudo no bolso aberto, com 99 de cada e em ordem numérica.
+
 ## 0.4.27 — 2026-10-16
 
 ### 🎨 Interface

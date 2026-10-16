@@ -60,9 +60,9 @@ public static class ShowdownBatch
                 return new(name, pk, true, error ?? "");
             if (!legalMode)
                 return new(name, pk, false, "ilegal (modo legal desligado)");
-            var legal = EncounterDatabase.Legalize(sav, pk.Clone(), out var message);
+            var legal = EncounterDatabase.LegalizeSet(sav, pk.Clone(), set, out var message, out var notKept);
             return legal is not null && CoreAdapter.IsLegal(legal) == true
-                ? new(name, legal, true, Loc.T("legalizado a partir de: ") + message)
+                ? new(name, legal, true, Loc.T("legalizado a partir de: ") + message + DescribeNotKept(notKept))
                 : new(name, null, false, "ilegal e sem encontro legal neste jogo");
         }
         catch (Exception ex)
@@ -70,6 +70,10 @@ public static class ShowdownBatch
             return new(first, null, false, ex.Message);
         }
     }
+
+    /// <summary>"; mudou: IVs, habilidade" (vazio quando o set inteiro ficou).</summary>
+    public static string DescribeNotKept(IReadOnlyList<string> notKept)
+        => notKept.Count == 0 ? "" : "; " + Loc.T("não deu para manter: ") + string.Join(", ", notKept.Select(Loc.T));
 
     /// <summary>Texto Showdown de varios Pokemon, separados por linha em branco (vazios e ovos ficam de fora).</summary>
     public static string Export(IEnumerable<PKM> pokemon)

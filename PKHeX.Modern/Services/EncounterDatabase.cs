@@ -12,7 +12,7 @@ namespace PKHeX.Modern.Services;
 /// Bancos de encontros e de Mystery Gift, com as mesmas funcoes do PKHeX original
 /// (SAV_Encounters e SAV_MysteryGiftDB). Tudo aqui pode rodar fora da thread da interface.
 /// </summary>
-public static class EncounterDatabase
+public static partial class EncounterDatabase
 {
     /// <summary>
     /// Encontros possiveis de uma especie (todas as formas). <paramref name="onlyThisGame"/> limita as versoes
@@ -395,6 +395,9 @@ public static class EncounterDatabase
         if (moves.ContainsAnyExcept((ushort)0))
         {
             to.SetMoves(moves);
+            // Sword/Shield e Scarlet/Violet: golpe de TM/TR so vale com a marca do registro (Tech Record).
+            if (to is ITechRecord record)
+                record.SetRecordFlags(moves);
             if (!new LegalityAnalysis(to).Info.Moves.All(m => m.Valid))
                 to.SetMoveset();
         }

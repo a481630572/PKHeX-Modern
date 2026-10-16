@@ -18,7 +18,7 @@ public sealed partial class MainViewModel
 
     private async Task OpenBankEditorAsync(SlotViewModel slot)
     {
-        if (_sav is null || slot.Pkm is not { } original) return;
+        if (_sav is null || slot.Pkm is not { } original || BlockedByHardcore("copiar do Bank para o editor")) return;
         var converted = CoreAdapter.ConvertForSave(_sav, original.Clone(), out var error);
         if (converted is null) { Status = error ?? "Este Pokémon não cabe no save aberto."; return; }
         if (!await ConfirmDiscardEditAsync() || !await ConfirmTransferAsync([(original, converted)])) return;

@@ -441,17 +441,22 @@
   <Style Selector="ListBox.nav ListBoxItem">
     <Setter Property="CornerRadius" Value="{DynamicResource Radius8}" />
     <Setter Property="Padding" Value="12,0" />
-    <Setter Property="Margin" Value="0,0.5" />
+    <!-- Margin vem de PageViewModel.NavMargin (estilo no MainView): espaco extra acima de cada grupo -->
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="Height" Value="28" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="ClipToBounds" Value="False" />
   </Style>
-  <Style Selector="TextBlock.navIcon">
-    <Setter Property="Height" Value="18" />
-    <Setter Property="FontSize" Value="13" />
-    <Setter Property="LineHeight" Value="18" />
-    <Setter Property="ClipToBounds" Value="True" />
-    <Setter Property="VerticalAlignment" Value="Center" />
+  <!-- O titulo do grupo e desenhado acima da linha, no espaco da margem: a linha nao pode recortar -->
+  <Style Selector="ListBox.nav ListBoxItem /template/ ContentPresenter">
+    <Setter Property="ClipToBounds" Value="False" />
+  </Style>
+  <!-- Titulo de grupo da barra lateral: na cor normal mesmo sobre a pagina selecionada -->
+  <Style Selector="TextBlock.navGroup">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
   </Style>
   <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
@@ -610,6 +615,63 @@
     <Setter Property="CornerRadius" Value="{DynamicResource Radius3}" />
     <Setter Property="Background" Value="{DynamicResource SlotBackground}" />
   </Style>
+  <!-- Inicio: linha de status do save (fundo dos slots; aviso em laranja; so os que tem acao reagem ao mouse) -->
+  <Style Selector="Button.homeStatus">
+    <Setter Property="Background" Value="{DynamicResource SlotBackground}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius8}" />
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="Margin" Value="0,0,8,0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Border.homeStatus">
+    <Setter Property="Background" Value="{DynamicResource SlotBackground}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius8}" />
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="Margin" Value="0,0,8,0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.homeStatus.warning">
+    <Setter Property="BorderBrush" Value="#F5A524" />
+  </Style>
+  <Style Selector="Button.homeStatus.warning:pointerover /template/ ContentPresenter">
+    <Setter Property="BorderBrush" Value="#F5A524" />
+  </Style>
+  <Style Selector="Border.homeStatus.warning">
+    <Setter Property="BorderBrush" Value="#F5A524" />
+  </Style>
+  <Style Selector="Button.homeStatus.warning TextBlock, Border.homeStatus.warning TextBlock">
+    <Setter Property="Foreground" Value="#F5A524" />
+  </Style>
+  <Style Selector="Button.homeStatus:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource CardBorder}" />
+  </Style>
+  <!-- Nuzlocke: mortos esmaecidos, situacao em chip (verde na equipe, vermelho morto) -->
+  <Style Selector="Border.nuzRow.dead">
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
+  <Style Selector="Border.nuzStatus">
+    <Setter Property="Background" Value="{DynamicResource CardBorder}" />
+  </Style>
+  <Style Selector="Border.nuzStatus.party">
+    <Setter Property="Background" Value="{DynamicResource Good}" />
+  </Style>
+  <Style Selector="Border.nuzStatus.dead">
+    <Setter Property="Background" Value="{DynamicResource Bad}" />
+  </Style>
+  <!-- Resumo da Pokedex: barra fina na cor de destaque -->
+  <Style Selector="ProgressBar.dexProgress">
+    <Setter Property="MinHeight" Value="6" />
+    <Setter Property="Height" Value="6" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius3}" />
+    <Setter Property="Background" Value="{DynamicResource SlotBackground}" />
+  </Style>
   <Style Selector="Slider.stat">
     <Setter Property="Margin" Value="0,-10" />
   </Style>
@@ -662,6 +724,31 @@
     <Setter Property="Foreground" Value="{DynamicResource TintGoodForeground}" />
   </Style>
   <Style Selector="ToggleButton.legalCard TextBlock.legalState">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+  </Style>
+
+  <!-- Modo Hardcore: cartao no lugar do modo legal (tom de aviso vermelho) -->
+  <Style Selector="Button.hardcoreCard">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius10}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.hardcoreCard /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource TintDangerBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource TintDangerForeground}" />
+  </Style>
+  <Style Selector="Button.hardcoreCard:pointerover /template/ ContentPresenter">
+    <Setter Property="Opacity" Value="0.85" />
+  </Style>
+  <Style Selector="Button.hardcoreCard TextBlock.hardcoreTitle">
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{DynamicResource TintDangerForeground}" />
+  </Style>
+  <Style Selector="Button.hardcoreCard TextBlock.legalState">
     <Setter Property="FontSize" Value="11" />
     <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
   </Style>

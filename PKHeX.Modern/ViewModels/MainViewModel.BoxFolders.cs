@@ -33,6 +33,8 @@ public sealed partial class MainViewModel
 
     public async Task ImportBoxFolderAsync(IEnumerable<string> files)
     {
+        if (BlockedByHardcore("importar arquivos de Pokémon"))
+            return;
         var sav = _sav;
         if (sav is null || !sav.HasBox || !await ConfirmDiscardEditAsync()) return;
         int start = ImportFirstBox ? 0 : Boxes.CurrentBox;

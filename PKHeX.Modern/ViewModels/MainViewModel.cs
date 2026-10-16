@@ -89,6 +89,8 @@ public sealed partial class MainViewModel : ViewModelBase
         Help = new HelpPageViewModel(Settings);
         Pokedex.LivingDex.LegalMode = () => LegalMode;
         Pokedex.LivingDex.ApplyPlan = ApplyLivingDexAsync;
+        Pokedex.IsHardcore = () => Hardcore;
+        Pokedex.Nuzlocke.CopyText = text => WriteClipboard?.Invoke(text) ?? Task.CompletedTask;
         Help.PrepareDiagnostic = () => DiagnosticReport.Build(Settings, Views.MainView.SaveFolder?.LastCounts);
         Help.ConfirmDiagnostic = text => ConfirmAsync("Compartilhar diagnóstico", "Confira o texto antes de compartilhar. Mensagens livres e dados de saves são omitidos para proteger sua privacidade.",
             App.ShowShortcuts ? "Copiar" : "Compartilhar", details: text.Split(Environment.NewLine), icon: "📋");
@@ -109,13 +111,21 @@ public sealed partial class MainViewModel : ViewModelBase
         CloseHelpCommand = new RelayCommand(() => IsHelpOpen = false);
         Home = new HomePageViewModel(page => CurrentPage = page,
             i => { CurrentPage = Party; if (i < Party.Slots.Count) _ = SelectSlotAsync(Party.Slots[i]); },
-            p => _ = OpenAsync(p), () => Settings.RecentSaves, () => _activeTab is { } t ? FullPath(t.Path) : null) { Pages = () => Pages };
+            p => _ = OpenAsync(p), () => Settings.RecentSaves, () => _activeTab is { } t ? FullPath(t.Path) : null)
+        {
+            Pages = () => Pages,
+            Pending = () => (IsDirty, PendingActions.Count),
+            ShowPendingCommand = new RelayCommand(() => _ = ShowPendingAsync()),
+            BackupsCommand = new RelayCommand(() => { CurrentPage = SaveManager; SaveManager.OpenBackupsCommand.Execute(null); }),
+        };
         Batch = new BatchPageViewModel(GetBatchTargets, () => _sav, ApplyBatchAsync);
         Game = new GamePageViewModel((t, m, ok) => ConfirmAsync(t, m, ok, isDanger: true, icon: "🎮"), s => Status = s);
         Game.IsLegalMode = () => LegalMode;
         Game.ShowCardQr = ShowCardQr;
         AddSelectedCardCommand = new RelayCommand(() =>
         {
+            if (BlockedByHardcore("adicionar eventos ao save"))
+                return;
             if (Gifts.Selected?.Encounter is DataMysteryGift gift && Game.AddCard(gift)) CurrentPage = Game;
         }, () => Game.HasCards && Gifts.Selected?.Encounter is DataMysteryGift);
         Gifts.PropertyChanged += (_, _) => AddSelectedCardCommand.NotifyCanExecuteChanged();
@@ -228,13 +238,28 @@ public sealed partial class MainViewModel : ViewModelBase
     {
         get
         {
-            var pages = AllPages.Where(p => p.IsAvailable).ToList();
+            var pages = AllPages.Where(p => p.IsAvailable && !(Hardcore && IsEditingPage(p))).ToList();
+            string? last = null;
             for (int i = 0; i < pages.Count; i++)
+            {
                 pages[i].Shortcut = i < 9 ? $"Ctrl+{i + 1}" : "";
+                var group = NavGroup(pages[i]);
+                pages[i].GroupHeader = group != last ? group : "";
+                last = group;
+            }
             Search.Shortcut = "Ctrl+Shift+F";
             return pages;
         }
     }
+
+    /// <summary>Grupos da barra lateral, na ordem das paginas (assim Ctrl+1..9 continuam os mesmos).</summary>
+    private static string NavGroup(PageViewModel page) => page switch
+    {
+        BoxesPageViewModel or PartyPageViewModel or BankPageViewModel or PokedexPageViewModel => "POKÉMON",
+        TrainerPageViewModel or BagPageViewModel => "TREINADOR",
+        EncounterDbViewModel or GiftDbViewModel => "OBTER",
+        _ => "FERRAMENTAS",
+    };
 
     // Atalhos de teclado (ligados em MainWindow.OnKeyDown)
     /// <summary>Vai para a pagina de indice <paramref name="index"/> (Ctrl+1..9).</summary>
@@ -434,6 +459,49 @@ public sealed partial class MainViewModel : ViewModelBase
                 ? "Modo legal ligado: o editor só mostra opções legais e não aplica Pokémon ilegal."
                 : "Modo legal desligado: o editor permite qualquer valor (use com cuidado).";
         }
+    }
+
+    /// <summary>
+    /// Modo Hardcore: desliga toda edição de dados (editor só leitura, criar, copiar, importar, Showdown, legalizar,
+    /// eventos, Treinador, Mochila, Jogo, Edição em lote, Pokédex). Mover, trocar, soltar e ordenar continuam.
+    /// </summary>
+    public bool Hardcore
+    {
+        get => Settings.Hardcore;
+        set
+        {
+            if (value == Settings.Hardcore)
+                return;
+            Settings.Hardcore = value;
+            Settings.Save();
+            Raise();
+            Raise(nameof(Pages));
+            if (value && IsEditingPage(CurrentPage))
+                CurrentPage = Home;
+            Pokedex.RaiseHardcore();
+            if (_selectedSlot is { IsBank: false, IsOther: false } slot && _sav is not null)
+                SelectSlot(slot); // reabre o editor (só leitura ou editável)
+            if (CurrentPage == Home)
+                Home.Refresh();
+            Status = value
+                ? "Modo Hardcore ligado: o editor só mostra os dados e as páginas de edição saem da barra lateral. Mover, trocar e soltar Pokémon continuam."
+                : "Modo Hardcore desligado: a edição voltou.";
+        }
+    }
+
+    public RelayCommand TurnOffHardcoreCommand => _turnOffHardcore ??= new RelayCommand(() => Hardcore = false);
+    private RelayCommand? _turnOffHardcore;
+
+    /// <summary>Páginas que só servem para editar o save (somem no modo Hardcore).</summary>
+    private static bool IsEditingPage(PageViewModel? page) => page is TrainerPageViewModel or BagPageViewModel or GamePageViewModel or BatchPageViewModel;
+
+    /// <summary>No modo Hardcore, avisa e devolve true (a ação não acontece).</summary>
+    private bool BlockedByHardcore(string what)
+    {
+        if (!Hardcore)
+            return false;
+        Status = $"Modo Hardcore: {what} está desligado. Mover, trocar e soltar Pokémon continuam liberados.";
+        return true;
     }
 
     public bool HasSave => _sav is not null;
@@ -734,7 +802,7 @@ public sealed partial class MainViewModel : ViewModelBase
         get => _isDirty;
         private set
         {
-            Set(ref _isDirty, value);
+            bool changed = Set(ref _isDirty, value);
             if (_activeTab is not null)
                 _activeTab.IsDirty = value;
             Raise(nameof(PendingActions));
@@ -743,6 +811,8 @@ public sealed partial class MainViewModel : ViewModelBase
                 InvalidateSearch(); // algo no save mudou
             else
                 _historyAtSave = _history?.Count ?? 0;
+            if (changed && CurrentPage == Home)
+                Home.Refresh(); // cartao de status (Tudo salvo / N nao salvas)
         }
     }
 
@@ -1078,6 +1148,8 @@ public sealed partial class MainViewModel : ViewModelBase
     {
         if (_sav is null || src == dst)
             return;
+        if (mode == DropMode.Copy && BlockedByHardcore("copiar Pokémon"))
+            return;
         if (src.IsMarked && _marks.Count > 1)
         {
             await MoveMarkedAsync(dst, mode);
@@ -1117,6 +1189,8 @@ public sealed partial class MainViewModel : ViewModelBase
         bool attach = Bank.AttachMode && src.IsBank && !dst.IsBank && src.BankBox is { IsExternal: false };
         if (attach)
             mode = DropMode.Copy;
+        if (mode == DropMode.Copy && BlockedByHardcore(attach ? "anexar (deixa uma cópia no bank)" : "copiar Pokémon"))
+            return;
         if (mode != DropMode.Move && b is not null && !await ConfirmAsync("Substituir Pokémon?",
                 $"{dst.Title} ({dst.Location}) será substituído por {(mode == DropMode.Copy ? "uma cópia de " : "")}{name}.", "Substituir"))
             return;
@@ -1360,6 +1434,8 @@ public sealed partial class MainViewModel : ViewModelBase
         if (_sav is null || CoreAdapter.IsLegal(pk) != false)
             return (pk, "");
         var name = CoreAdapter.SpeciesNames[pk.Species];
+        if (Hardcore)
+            return (pk, $"Atenção: {name} está ilegal neste save (no modo Hardcore ele vem como está).");
         if (!LegalMode)
             return (pk, $"Atenção: {name} está ilegal (dá para usar ✨ Legalizar no editor).");
         var candidate = await LegalizeOutsideAsync(pk);
@@ -1410,7 +1486,7 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>Soltar um arquivo .pk* sobre um slot (pergunta antes de substituir um Pokemon).</summary>
     public async Task ImportFileAsync(SlotViewModel dst, string path)
     {
-        if (_sav is null)
+        if (_sav is null || BlockedByHardcore("importar arquivos de Pokémon"))
             return;
         if (!await ConfirmDiscardEditAsync()) return;
         if (dst.IsOther)
@@ -1553,6 +1629,8 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>Importar (botao): vai para o slot selecionado ou, sem selecao, para o primeiro slot vazio da caixa.</summary>
     public async Task ImportFileAsync(string path)
     {
+        if (BlockedByHardcore("importar arquivos de Pokémon"))
+            return;
         var dst = _selectedSlot ?? Boxes.Slots.FirstOrDefault(s => s.IsEmpty);
         if (dst is null)
         {
@@ -1798,6 +1876,8 @@ public sealed partial class MainViewModel : ViewModelBase
     {
         if (_sav is null)
             return;
+        if (mode == DropMode.Copy && BlockedByHardcore("copiar Pokémon"))
+            return;
         if (dst.IsParty)
         {
             Status = "Vários Pokémon de uma vez só vão para caixas (do save, do outro save ou do bank). Para a equipe, arraste um por vez.";
@@ -1998,6 +2078,8 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>Criar PKM: abre o editor em branco no primeiro slot vazio da caixa atual.</summary>
     private async void CreateInFirstEmpty()
     {
+        if (BlockedByHardcore("criar Pokémon"))
+            return;
         CurrentPage = Boxes;
         if (Boxes.Slots.FirstOrDefault(s => s.IsEmpty) is not { } slot)
         {
@@ -2190,7 +2272,7 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>Clique num Pokemon ilegal: pergunta se quer legalizar; sim legaliza e grava no slot (com Ctrl+Z).</summary>
     private async Task OfferLegalizeAsync(SlotViewModel slot)
     {
-        if (!Settings.AskLegalizeOnClick || Editor is not { ShowIllegal: true } editor || slot.IsEmpty)
+        if (Hardcore || !Settings.AskLegalizeOnClick || Editor is not { ShowIllegal: true } editor || slot.IsEmpty)
             return;
         var key = $"{_activeTab?.Path}|{slot.Location}|{Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(editor.CurrentData))}";
         if (_legalizeDeclined.Contains(key))
@@ -2217,7 +2299,7 @@ public sealed partial class MainViewModel : ViewModelBase
     /// </summary>
     private async void UseEncounter(IEncounterInfo enc)
     {
-        if (_sav is null)
+        if (_sav is null || BlockedByHardcore("gerar Pokémon de encontros e eventos"))
             return;
         var pk = EncounterDatabase.ToEntity(_sav, enc, out var error);
         if (pk is null)
@@ -2319,6 +2401,8 @@ public sealed partial class MainViewModel : ViewModelBase
         PokemonEditorViewModel? nextEditor = null;
         nextEditor = new PokemonEditorViewModel(source, slot.Location, pk =>
         {
+            if (BlockedByHardcore("editar Pokémon"))
+                return;
             if (CoreAdapter.IsEmpty(pk))
             {
                 Status = "Escolha uma espécie antes de aplicar.";
@@ -2333,7 +2417,7 @@ public sealed partial class MainViewModel : ViewModelBase
             applied?.Invoke(pk);
             RaiseSelectionChanged();
             Status = $"{CoreAdapter.SpeciesNames[pk.Species]} gravado em {slot.Location}. Lembre-se de salvar.";
-        }, s => Status = s, isNew: generated is null && slot.IsEmpty, pendingApply: generated is not null, sav: _sav, legalMode: Settings.LegalMode) { SelectedTab = tab, ShowQr = ShowPokemonQr, Confirm = (t, m, ok) => ConfirmAsync(t, m, ok),
+        }, s => Status = s, isNew: generated is null && slot.IsEmpty, pendingApply: generated is not null, sav: _sav, legalMode: Settings.LegalMode) { ReadOnly = Hardcore, SelectedTab = tab, ShowQr = ShowPokemonQr, Confirm = (t, m, ok) => ConfirmAsync(t, m, ok),
             ConfirmPreview = ConfirmEditorPreviewAsync, IsCurrentEditor = () => Editor == nextEditor };
         Editor = nextEditor;
     }

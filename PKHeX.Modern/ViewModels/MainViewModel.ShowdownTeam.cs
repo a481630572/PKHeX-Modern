@@ -51,7 +51,7 @@ public sealed partial class MainViewModel
 
     public async Task PasteShowdownTeamAsync(bool toParty)
     {
-        if (_sav is not { } sav || ReadClipboard is null)
+        if (_sav is not { } sav || ReadClipboard is null || BlockedByHardcore("colar sets do Showdown"))
             return;
         var sets = ShowdownBatch.Split(await ReadClipboard());
         if (sets.Count == 0)

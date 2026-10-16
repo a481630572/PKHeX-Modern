@@ -14,12 +14,12 @@ public sealed partial class MainViewModel
         var sav = slot.Save; var tab = Editor?.SelectedTab ?? 0;
         Editor = new PokemonEditorViewModel(slot.Pokemon, $"Creche {slot.Area + 1}, posição {slot.Slot + 1}", pk =>
         {
-            if (!ReferenceEquals(_sav, sav) || pk.Species == 0) return;
+            if (!ReferenceEquals(_sav, sav) || pk.Species == 0 || BlockedByHardcore("editar Pokémon")) return;
             _history!.Record("editar creche", SlotHistory.Key.Daycare);
             Daycares.Write(sav, slot.Storage, slot.Slot, pk);
             IsDirty = true; OnHistoryChanged(); Party.RefreshDaycare();
             Status = "Pokémon da creche atualizado. Salve para gravar.";
-        }, s => Status = s, sav: sav, legalMode: LegalMode) { SelectedTab = tab, ShowQr = ShowPokemonQr, Confirm = (t, m, ok) => ConfirmAsync(t, m, ok) };
+        }, s => Status = s, sav: sav, legalMode: LegalMode) { ReadOnly = Hardcore, SelectedTab = tab, ShowQr = ShowPokemonQr, Confirm = (t, m, ok) => ConfirmAsync(t, m, ok) };
     }
 
     public async Task DepositDaycareAsync(DaycareSlotViewModel destination)

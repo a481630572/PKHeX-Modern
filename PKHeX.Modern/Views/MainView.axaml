@@ -76,7 +76,16 @@
                   IsVisible="{Binding Help.IsReadyToRestart}" Content="{Binding Help.RestartText}" Command="{Binding Help.RestartCommand}"
                   ToolTip.Tip="A versão nova já está instalada. Reinicia o app (pergunta antes se houver alterações não salvas)" />
           <!-- Modo legal: cartao clicavel numa linha (verde = ligado, ambar = desligado) -->
-          <ToggleButton Classes="legalCard" IsChecked="{Binding LegalMode}" Margin="0,0,0,4"
+          <!-- Modo Hardcore: no lugar do modo legal (sem edicao, o modo legal nao importa); clique desliga -->
+          <Button Classes="hardcoreCard" IsVisible="{Binding Hardcore}" Margin="0,0,0,4" Command="{Binding TurnOffHardcoreCommand}"
+                  ToolTip.Tip="Ligado: nada de editar dados (desafios e RetroAchievements). Mover, trocar e soltar Pokémon continuam. Clique para desligar.">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+              <TextBlock Text="🔒" FontSize="13" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Classes="hardcoreTitle" Text="Modo Hardcore" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="2" Classes="legalState" Text="Ligado" VerticalAlignment="Center" />
+            </Grid>
+          </Button>
+          <ToggleButton Classes="legalCard" IsChecked="{Binding LegalMode}" Margin="0,0,0,4" IsVisible="{Binding !Hardcore}"
                         ToolTip.Tip="Ligado: o editor só mostra opções legais (golpes que o Pokémon aprende, bolas do encontro, espécies do jogo), desfaz mudanças que o deixariam ilegal e só aplica Pokémon legal. Clique para ligar ou desligar.">
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
               <Viewbox Width="17" Height="19" VerticalAlignment="Center">
@@ -165,6 +174,8 @@
                     <CheckBox Content="Abrir último save ao iniciar" FontSize="12" Margin="0,8,0,0" IsChecked="{Binding OpenLastSaveOnStartup}" />
                     <CheckBox Content="Oferecer legalizar ao clicar num ilegal" FontSize="12" IsChecked="{Binding AskLegalizeOnClick}"
                               ToolTip.Tip="Ao clicar num Pokémon ilegal, mostra a prévia do Legalizar. Desligado, o Pokémon só abre no editor (o botão Legalizar continua lá)." />
+                    <CheckBox Content="Modo Hardcore (só mover Pokémon)" FontSize="12" IsChecked="{Binding Hardcore}"
+                              ToolTip.Tip="Para desafios (Nuzlocke) e RetroAchievements: desliga toda edição de dados. O editor só mostra os dados e Treinador, Mochila, Jogo e Edição em lote saem da barra lateral; mover, trocar, soltar e ordenar continuam." />
                   </StackPanel>
                   </ScrollViewer>
                 </Flyout>
@@ -206,7 +217,7 @@
         <Button DockPanel.Dock="Top" Classes="navHome" Classes.selected="{Binding IsHomeActive}" IsVisible="{Binding HasSave}"
                 Command="{Binding GoHomeCommand}" ToolTip.Tip="Tela inicial do save: equipe, atalhos e saves recentes (Ctrl+0)">
           <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-            <TextBlock Text="⌂" Width="20" TextAlignment="Center" />
+            <controls:LineIcon Kind="⌂" Width="18" Height="18" Margin="1,0" VerticalAlignment="Center" />
             <TextBlock Grid.Column="1" Text="Início" />
             <TextBlock Grid.Column="2" Text="Ctrl+0" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center" IsVisible="{x:Static local:App.ShowShortcuts}" />
           </Grid>
@@ -246,18 +257,29 @@
         <Border ClipToBounds="True" IsVisible="{Binding HasSave}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Margin="0,4,0,0" Padding="0,4,0,0">
           <ListBox Classes="nav" Classes.dimmed="{Binding IsHelpOpen}" IsVisible="{Binding HasSave}" ItemsSource="{Binding Pages}"
                    SelectedItem="{Binding CurrentPage}" Background="Transparent">
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem" x:DataType="vm:PageViewModel">
+                <Setter Property="Margin" Value="{Binding NavMargin}" />
+              </Style>
+            </ListBox.Styles>
             <!-- Sem virtualizacao: sao poucas paginas, e no Android a linha reciclada ficava desenhada por cima ao rolar -->
             <ListBox.ItemsPanel>
               <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:PageViewModel">
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="{Binding Icon}" Width="20" TextAlignment="Center" Classes="navIcon" />
-                  <TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center" />
-                  <TextBlock Grid.Column="2" Text="{Binding Shortcut}" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center"
-                             IsVisible="{x:Static local:App.ShowShortcuts}" />
-                </Grid>
+                <Panel>
+                  <!-- Titulo do grupo no espaco acima da linha (NavMargin); fora do realce da selecao e sem receber clique -->
+                  <Canvas IsVisible="{Binding IsGroupStart}" IsHitTestVisible="False" VerticalAlignment="Top">
+                    <TextBlock Text="{Binding GroupHeader}" Classes="section navGroup" Canvas.Left="-8" Canvas.Top="-22" />
+                  </Canvas>
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <controls:LineIcon Kind="{Binding Icon}" Width="18" Height="18" Margin="1,0" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Shortcut}" Classes="muted navShortcut" FontSize="10" VerticalAlignment="Center"
+                               IsVisible="{x:Static local:App.ShowShortcuts}" />
+                  </Grid>
+                </Panel>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -362,11 +384,13 @@
                   <CheckBox Content="Todas as caixas (desmarque para só esta caixa)" IsChecked="{Binding ExportAllBoxes}" />
                   <CheckBox Content="Uma subpasta por caixa" IsChecked="{Binding BoxSubfolders}" />
                   <Button Content="Exportar caixas para pasta..." Click="OnExportBoxFolder" />
+                  <StackPanel Spacing="8" IsVisible="{Binding !Hardcore}">
                   <TextBlock Text="Importar caixas" Classes="section" />
                   <CheckBox Content="Da primeira caixa (desmarque para esta caixa)" IsChecked="{Binding ImportFirstBox}" />
                   <CheckBox Content="Limpar as caixas antes" IsChecked="{Binding ClearImportBoxes}" />
                   <CheckBox Content="Sobrescrever slots ocupados" IsChecked="{Binding OverwriteImportSlots}" />
                   <Button Content="Importar pasta para as caixas..." Click="OnImportBoxFolder" />
+                  </StackPanel>
                 </StackPanel>
               </Flyout>
             </Button.Flyout>
@@ -376,9 +400,9 @@
           <Button Classes="small" Content="↷" FontSize="16" Padding="10,0" Command="{Binding RedoCommand}" ToolTip.Tip="{Binding RedoTip}" />
           <Button Classes="small good" Content="✓  Verificar legalidade" Command="{Binding CheckLegalityCommand}"
                   ToolTip.Tip="Verifica todos os Pokémon do save (caixas e equipe) e mostra o resultado" />
-          <Button Classes="small info" Content="+  Criar PKM" Command="{Binding CreateCommand}"
+          <Button Classes="small info" Content="+  Criar PKM" Command="{Binding CreateCommand}" IsVisible="{Binding !Hardcore}"
                   ToolTip.Tip="Novo Pokémon no primeiro slot vazio da caixa" />
-          <Button Classes="small" Content="⭳  Importar" Click="OnImportEntity"
+          <Button Classes="small" Content="⭳  Importar" Click="OnImportEntity" IsVisible="{Binding !Hardcore}"
                   ToolTip.Tip="Importa um arquivo .pk* para o slot selecionado (ou o primeiro vazio)" />
           <Button Classes="small danger" Content="🗑  Excluir" Command="{Binding DeleteCommand}"
                   ToolTip.Tip="Apaga o Pokémon selecionado ou os marcados com Ctrl+clique (Delete). No save, dá para desfazer com Ctrl+Z" />

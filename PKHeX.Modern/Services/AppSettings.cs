@@ -31,6 +31,8 @@ public sealed class AppSettings
     public System.Collections.Generic.List<string> ExternalBankFolders { get; set; } = [];
     /// <summary>Modo legal: o editor so oferece opcoes legais e nao deixa aplicar um Pokemon ilegal.</summary>
     public bool LegalMode { get; set; } = true;
+    /// <summary>Modo Hardcore: nada de editar dados (desafios, RetroAchievements); mover, trocar e soltar Pokemon continuam.</summary>
+    public bool Hardcore { get; set; }
     /// <summary>Verificar ao iniciar se saiu uma release nova no GitHub.</summary>
     public bool CheckForUpdates { get; set; } = true;
     /// <summary>Ao achar uma versao nova, mostrar as notas e oferecer atualizar (vale ao reiniciar o app).</summary>

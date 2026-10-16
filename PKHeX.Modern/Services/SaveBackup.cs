@@ -67,6 +67,27 @@ public static partial class SaveBackup
             .OrderByDescending(b => b.Created)];
     }
 
+    /// <summary>Data do backup mais novo de um save (pelo registro de origem), sem conferir o SHA-256 de todos como o <see cref="List"/>.</summary>
+    public static DateTime? LatestFor(string path)
+    {
+        if (!Directory.Exists(Folder))
+            return null;
+        string full;
+        try { full = Path.GetFullPath(path); } catch { return null; }
+        DateTime? latest = null;
+        foreach (var (file, source) in ReadIndex())
+        {
+            if (!string.Equals(source, full, StringComparison.OrdinalIgnoreCase) || !File.Exists(Path.Combine(Folder, file)))
+                continue;
+            var m = StampPattern().Match(Path.GetFileNameWithoutExtension(file));
+            var created = m.Success && DateTime.TryParseExact(m.Groups["stamp"].Value, "yyyy-MM-dd HH-mm-ss", null,
+                System.Globalization.DateTimeStyles.None, out var d) ? d : File.GetCreationTime(Path.Combine(Folder, file));
+            if (latest is null || created > latest)
+                latest = created;
+        }
+        return latest;
+    }
+
     /// <summary>
     /// Restaura o backup em <paramref name="target"/>. O arquivo que estava la ganha um backup antes (da para voltar atras).
     /// Retorna o caminho desse novo backup (ou null se o destino nao existia).

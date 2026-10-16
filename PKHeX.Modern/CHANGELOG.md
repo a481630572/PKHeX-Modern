@@ -6,6 +6,21 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
+## Próxima versão
+
+### 🎨 Interface
+- **Ícones vetoriais:** a barra lateral e os atalhos do Início usam ícones de traço desenhados pelo app, na cor do texto (e na cor de destaque na página atual), no lugar dos emojis, que mudavam de tamanho e de estilo em cada sistema, principalmente no Android.
+- **Barra lateral em grupos:** Pokémon (Caixas, Equipe, Bank, Pokédex), Treinador (Treinador, Mochila), Obter (Encontros, Eventos) e Ferramentas (Saves, Jogo, Pesquisa, Edição em lote). A ordem e os atalhos Ctrl+1 a Ctrl+9 não mudaram.
+- **Status do save no Início:** abaixo do cartão do jogo, alterações não salvas (clique para ver e salvar), último backup (clique para abrir os backups), vagas livres nas caixas e o arquivo.
+- **Resumo da coleção na Pokédex:** sem espécie escolhida, o painel da direita mostra barras de Living dex, Shiny dex, capturadas e vistas, quantas faltam em cada geração (clique para listar só as que faltam) e o botão “Próxima que falta”; “‹ Resumo” volta para ele.
+
+### 🔒 Desafios
+- **Modo Hardcore:** no ⚙, “Modo Hardcore (só mover Pokémon)” desliga toda edição de dados, para desafios como o Nuzlocke e para quem joga com RetroAchievements. O editor só mostra os dados; criar, copiar, importar, colar Showdown, legalizar, gerar encontros e eventos e completar a Pokédex ficam desligados, e Treinador, Mochila, Jogo e Edição em lote saem da barra lateral. Mover, trocar, soltar, ordenar e usar o Bank continuam. Um cartão vermelho no lugar do modo legal mostra que está ligado.
+- **Relatório de Nuzlocke:** nova aba na Pokédex com o primeiro Pokémon capturado em cada rota, as capturas a mais, os repetidos (família já capturada antes), quem está na equipe, vivo ou morto (pela caixa do cemitério, escolhida pelo nome) e um botão para copiar o relatório em texto. Trocas, outros jogos e ovos ficam de fora; da Gen 4 em diante a ordem segue a data de captura.
+
+### 🐛 Correções
+- **Pokédex com fontes largas:** o nome da espécie no painel encolhe em vez de quebrar no meio ("Ivysa/ur"), e "Nenhum Pokémon desta espécie guardado" não é mais cortado.
+
 ## 0.4.26 — 2026-10-15
 
 ### 📱 Celular e telas pequenas

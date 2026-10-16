@@ -113,10 +113,14 @@ public sealed partial class PokemonEditorViewModel : ViewModelBase
     private bool _guardSuspended;
     private bool _reverting;
 
-    public bool CanApply => !LegalMode || IsLegal;
+    /// <summary>Modo Hardcore: o editor só mostra os dados (campos desligados, sem Aplicar).</summary>
+    public bool ReadOnly { get; init; }
+    public bool CanEdit => !ReadOnly;
+    public bool CanApply => !ReadOnly && (!LegalMode || IsLegal);
     /// <summary>Aviso no editor: modo legal ligado e o Pokemon (ja salvo assim) esta ilegal.</summary>
-    public bool ShowLegalModeBlock => LegalMode && ShowIllegal;
-    public string ApplyTip => CanApply ? "Grava o Pokémon no slot"
+    public bool ShowLegalModeBlock => !ReadOnly && LegalMode && ShowIllegal;
+    public string ApplyTip => ReadOnly ? "Modo Hardcore: o editor só mostra os dados. Mover, trocar e soltar Pokémon continuam liberados."
+        : CanApply ? "Grava o Pokémon no slot"
         : "Modo legal: este Pokémon está ilegal. Use ✨ Legalizar ou as correções sugeridas (ou desligue o modo legal na barra lateral).";
 
     private void RaiseLegalMode()
@@ -820,7 +824,7 @@ public sealed partial class PokemonEditorViewModel : ViewModelBase
 
     // Genero (clicavel)
     /// <summary>Da para trocar o genero: especies com os dois generos (ou cuja forma e o genero), da Gen 3 em diante.</summary>
-    public bool CanToggleGender => !CoreAdapter.IsEmpty(_pk) && !_pk.IsEgg && _pk.Format >= 3
+    public bool CanToggleGender => !ReadOnly && !CoreAdapter.IsEmpty(_pk) && !_pk.IsEgg && _pk.Format >= 3
         && (_pk.PersonalInfo.IsDualGender || (CoreAdapter.IsGenderForm(_pk.Species) && _pk.Format >= 6));
     public string GenderTip => !CanToggleGender ? "Gênero" :
         "Clique para trocar o gênero." + (CoreAdapter.IsGenderForm(_pk.Species) ? " A forma muda junto (nesta espécie, a forma é o gênero)." : "")
@@ -887,7 +891,7 @@ public sealed partial class PokemonEditorViewModel : ViewModelBase
     /// <summary>Simbolo do shiny no cabecalho: ☆ normal, ★ estrela, ◆ quadrado (o quadrado so existe a partir da Gen 8).</summary>
     public string ShinySymbol => !_pk.IsShiny ? "☆"
         : _pk.Context.IsSquareShinyDifferentiated && ShinyExtensions.GetType(_pk) == Shiny.AlwaysSquare ? "◆" : "★";
-    public bool CanToggleShiny => !CoreAdapter.IsEmpty(_pk) && !_pk.IsEgg;
+    public bool CanToggleShiny => !ReadOnly && !CoreAdapter.IsEmpty(_pk) && !_pk.IsEgg;
     public string ShinyActionText => _pk.IsShiny ? "☆  Tirar shiny" : "★  Tornar shiny";
     public string ShinyShortcutsTip => (_pk.IsShiny ? "Clique: tira o shiny." : "Clique: torna shiny (troca o PID).")
         + "\nAlt+clique: shiny mantendo o PID (troca o SID do treinador; mantém a ligação PID/IV da Gen 3/4)."

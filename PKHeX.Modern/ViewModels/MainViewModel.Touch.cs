@@ -40,7 +40,7 @@ public sealed partial class MainViewModel
         ToggleTouchSelectionCommand = new RelayCommand(() => TouchSelectionMode = !TouchSelectionMode);
         MoveTouchSelectionCommand = new RelayCommand(() => _ = MoveTouchSelectionAsync(false));
         BankTouchSelectionCommand = new RelayCommand(() => _ = MoveTouchSelectionAsync(true));
-        BatchTouchSelectionCommand = new RelayCommand(() => { Batch.ScopeIndex = (int)BatchScope.Marked; CurrentPage = Batch; });
+        BatchTouchSelectionCommand = new RelayCommand(() => { if (BlockedByHardcore("a edição em lote")) return; Batch.ScopeIndex = (int)BatchScope.Marked; CurrentPage = Batch; });
     }
 
     private async Task MoveTouchSelectionAsync(bool toBank)

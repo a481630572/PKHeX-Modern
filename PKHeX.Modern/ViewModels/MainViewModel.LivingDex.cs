@@ -20,6 +20,8 @@ public sealed partial class MainViewModel
 
     private async Task<bool> ApplyLivingDexAsync(LivingDexApplicationPlan preview)
     {
+        if (BlockedByHardcore("aplicar a Living Dex"))
+            return false;
         if (_sav is not { } sav || _history is null || !LivingDexApplication.Validate(preview, sav, ReadDexOrigin))
         { Status = "A origem ou o destino mudou. Refazer a prévia é necessário."; return false; }
         if (!await ConfirmDiscardEditAsync()) return false;

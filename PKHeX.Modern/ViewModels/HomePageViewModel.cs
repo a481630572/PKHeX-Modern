@@ -21,6 +21,10 @@ public sealed class HomePageViewModel(Action<PageViewModel> navigate, Action<int
 
     /// <summary>Paginas que viram atalhos (definido pelo MainViewModel, na ordem da barra lateral).</summary>
     public Func<IReadOnlyList<PageViewModel>>? Pages { get; set; }
+    /// <summary>Situacao do save (definida pelo MainViewModel): alteracoes nao salvas e as acoes do cartao de status.</summary>
+    public Func<(bool Dirty, int Count)>? Pending { get; set; }
+    public RelayCommand? ShowPendingCommand { get; set; }
+    public RelayCommand? BackupsCommand { get; set; }
 
     public override void Load(SaveFile sav)
     {
@@ -65,6 +69,8 @@ public sealed class HomePageViewModel(Action<PageViewModel> navigate, Action<int
         {
             // caixas ilegiveis
         }
+        Status = BuildStatus(sav, stored);
+
         var tiles = new List<HomeTileViewModel>();
         foreach (var page in Pages?.Invoke() ?? [])
             tiles.Add(new HomeTileViewModel(page.Icon, page.Title, TileDetail(page, sav, stored, party.Count), page.Shortcut, new RelayCommand(() => navigate(page))));
@@ -83,8 +89,45 @@ public sealed class HomePageViewModel(Action<PageViewModel> navigate, Action<int
                 break;
         }
         Recent = recent;
-        foreach (var p in (string[])[nameof(Art), nameof(GameName), nameof(Trainer), nameof(Facts), nameof(Party), nameof(HasParty), nameof(Tiles), nameof(Recent), nameof(HasRecent)])
+        foreach (var p in (string[])[nameof(Art), nameof(GameName), nameof(Trainer), nameof(Facts), nameof(Status), nameof(Party), nameof(HasParty), nameof(Tiles), nameof(Recent), nameof(HasRecent)])
             Raise(p);
+    }
+
+    /// <summary>Cartao de status: o que importa antes de fechar o app (alteracoes, backup, espaco, arquivo).</summary>
+    private List<HomeStatusViewModel> BuildStatus(SaveFile sav, int stored)
+    {
+        var list = new List<HomeStatusViewModel>();
+        var (dirty, count) = Pending?.Invoke() ?? (false, 0);
+        list.Add(dirty
+            ? new HomeStatusViewModel("Alterações", count switch { 0 => "Não salvas", 1 => "1 não salva", _ => $"{count} não salvas" }, true,
+                ShowPendingCommand, "Ver a lista e salvar")
+            : new HomeStatusViewModel("Alterações", "Tudo salvo", false, null, "O arquivo do save está igual ao que você vê"));
+
+        var path = currentPath();
+        var backup = path is null ? null : SaveBackup.LatestFor(path);
+        list.Add(new HomeStatusViewModel("Último backup", backup is { } b ? WhenText(b) : "Nenhum ainda", false, BackupsCommand,
+            "Antes de salvar por cima, o arquivo anterior vai para os backups. Clique para ver a lista."));
+
+        int total = sav.BoxCount * sav.BoxSlotCount;
+        if (total > 0)
+            list.Add(new HomeStatusViewModel("Vagas nas caixas", $"{total - stored}/{total}", total - stored == 0, null,
+                total - stored == 0 ? "As caixas estão cheias" : "Espaços livres para novos Pokémon"));
+
+        if (path is not null)
+            list.Add(new HomeStatusViewModel("Arquivo", ZipSaves.DisplayName(path), false, null, path));
+        return list;
+    }
+
+    private static string WhenText(DateTime when)
+    {
+        var days = (DateTime.Today - when.Date).Days;
+        return days switch
+        {
+            0 => $"Hoje, {when:HH:mm}",
+            1 => $"Ontem, {when:HH:mm}",
+            < 7 => $"Há {days} dias",
+            _ => when.ToString("dd/MM/yyyy"),
+        };
     }
 
     private static string TileDetail(PageViewModel page, SaveFile sav, int stored, int partyCount) => page switch
@@ -108,6 +151,7 @@ public sealed class HomePageViewModel(Action<PageViewModel> navigate, Action<int
     public string GameName { get; private set; } = "";
     public string Trainer { get; private set; } = "";
     public string Facts { get; private set; } = "";
+    public IReadOnlyList<HomeStatusViewModel> Status { get; private set; } = [];
     public IReadOnlyList<HomePartyViewModel> Party { get; private set; } = [];
     public bool HasParty => Party.Count > 0;
     public IReadOnlyList<HomeTileViewModel> Tiles { get; private set; } = [];
@@ -123,6 +167,12 @@ public sealed class HomePartyViewModel(PKM pk, RelayCommand open)
     public string Level { get; } = pk.IsEgg ? "" : $"Nv. {pk.CurrentLevel}";
     public bool IsShiny { get; } = pk.IsShiny;
     public RelayCommand OpenCommand { get; } = open;
+}
+
+/// <summary>Uma linha do cartao de status do Inicio (com acao opcional ao clicar).</summary>
+public sealed record HomeStatusViewModel(string Label, string Value, bool IsWarning, RelayCommand? Command, string Tip)
+{
+    public bool HasCommand => Command is not null;
 }
 
 /// <summary>Atalho grande para uma pagina.</summary>

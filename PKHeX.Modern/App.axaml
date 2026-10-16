@@ -122,7 +122,7 @@
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
       <StackPanel Spacing="18" MaxWidth="1100">
         <Border Classes="card">
-          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="18">
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="18">
             <Border Classes="gameBadge" Width="72" Height="72" CornerRadius="{DynamicResource Radius16}" Background="{Binding Art.Background}">
               <Viewbox Margin="4">
                 <Panel Width="100" Height="100">
@@ -137,6 +137,31 @@
               <TextBlock Text="{Binding Trainer}" Classes="muted" FontSize="13" />
               <TextBlock Text="{Binding Facts}" Classes="muted" FontSize="13" />
             </StackPanel>
+            <!-- Status do save: alteracoes, ultimo backup, vagas e arquivo (clicaveis quando tem acao) -->
+            <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Status}" Margin="0,14,0,0">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:HomeStatusViewModel">
+                  <Panel>
+                    <Button Classes="homeStatus" Classes.warning="{Binding IsWarning}" Command="{Binding Command}"
+                            IsVisible="{Binding HasCommand}" ToolTip.Tip="{Binding Tip}">
+                      <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding Label}" Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Value}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </Button>
+                    <Border Classes="homeStatus" Classes.warning="{Binding IsWarning}" IsVisible="{Binding !HasCommand}" ToolTip.Tip="{Binding Tip}">
+                      <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding Label}" Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Value}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </Border>
+                  </Panel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </Grid>
         </Border>
 
@@ -173,7 +198,8 @@
               <DataTemplate x:DataType="vm:HomeTileViewModel">
                 <Button Classes="homeTile" Command="{Binding Command}">
                   <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-                    <TextBlock Text="{Binding Icon}" FontSize="28" VerticalAlignment="Center" Width="36" TextAlignment="Center" />
+                    <c:LineIcon Kind="{Binding Icon}" Width="30" Height="30" Margin="3,0" StrokeWidth="1.7" VerticalAlignment="Center"
+                                Foreground="{DynamicResource Accent}" />
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                       <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" />
                       <TextBlock Text="{Binding Detail}" Classes="muted" FontSize="12" TextTrimming="CharacterEllipsis" />
@@ -657,14 +683,88 @@
       </Grid>
     </Grid>
   </DataTemplate>
+  <!-- Relatorio de Nuzlocke (aba da Pokedex): uma linha por rota com o primeiro encontro -->
+  <DataTemplate DataType="vm:NuzlockeViewModel">
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,10">
+        <StackPanel Spacing="2">
+          <TextBlock Text="Nuzlocke" Classes="title" />
+          <TextBlock Text="O primeiro Pokémon capturado em cada rota, pelo local que o jogo guarda. Só lê o save." Classes="muted" FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+        <WrapPanel ItemSpacing="8" LineSpacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Caixa do cemitério" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding GraveyardOptions}" SelectedIndex="{Binding GraveyardIndex}" MinWidth="180"
+                      ToolTip.Tip="Os Pokémon desta caixa contam como mortos. Uma caixa com “Cemitério”, “Grave” ou “Dead” no nome já vem escolhida." />
+          </StackPanel>
+          <Button Classes="small" Content="⟳ Atualizar" Command="{Binding RefreshCommand}" />
+          <Button Classes="small" Content="📋 Copiar relatório" Command="{Binding CopyCommand}" IsEnabled="{Binding HasRoutes}"
+                  ToolTip.Tip="Copia o relatório em texto, uma linha por rota, para colar num fórum ou rede social" />
+        </WrapPanel>
+        <Border Classes="card dexStats" IsVisible="{Binding HasRoutes}">
+          <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" FontSize="13" TextWrapping="Wrap" />
+        </Border>
+        <TextBlock Text="{Binding Note}" Classes="muted" FontSize="12" TextWrapping="Wrap"
+                   IsVisible="{Binding Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+      <Panel>
+        <TextBlock Text="{Binding Unsupported}" TextWrapping="Wrap" IsVisible="{Binding IsUnsupported}" />
+        <TextBlock Text="Nenhum Pokémon capturado neste jogo pelo treinador do save." Classes="muted" IsVisible="{Binding IsEmpty}" />
+        <ScrollViewer IsVisible="{Binding HasRoutes}" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding Routes}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:NuzlockeRouteViewModel">
+                <Border Classes="card nuzRow" Classes.dead="{Binding IsDead}" Padding="12,8">
+                  <Grid ColumnDefinitions="2*,Auto,3*,Auto,Auto" ColumnSpacing="12">
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                      <TextBlock Text="{Binding Route}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Date}" Classes="muted" FontSize="11" IsVisible="{Binding HasDate}" />
+                    </StackPanel>
+                    <Image Grid.Column="1" Source="{Binding Sprite}" Width="44" Height="44" />
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Level}" Classes="muted" FontSize="11" />
+                        <TextBlock Text="{Binding Where}" Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </StackPanel>
+                    <WrapPanel Grid.Column="3" VerticalAlignment="Center" ItemSpacing="6" LineSpacing="4" MaxWidth="260" HorizontalAlignment="Right">
+                      <Border Classes="chip nuzStatus" Classes.dead="{Binding IsDead}" Classes.party="{Binding IsParty}">
+                        <TextBlock Text="{Binding StatusText}" />
+                      </Border>
+                      <Border Classes="chip" Background="{DynamicResource CardBorder}" IsVisible="{Binding IsDupe}"
+                              ToolTip.Tip="A família deste Pokémon já tinha sido capturada numa rota anterior (regra dos repetidos)">
+                        <TextBlock Text="{Binding DupeText}" />
+                      </Border>
+                      <Border Classes="chip" Background="{DynamicResource CardBorder}" IsVisible="{Binding HasExtras}" ToolTip.Tip="{Binding ExtrasTip}">
+                        <TextBlock Text="{Binding ExtrasText}" />
+                      </Border>
+                    </WrapPanel>
+                    <Button Grid.Column="4" Classes="small" Content="Ir" Command="{Binding GoCommand}" VerticalAlignment="Center"
+                            ToolTip.Tip="Abre este Pokémon no save" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Panel>
+    </DockPanel>
+  </DataTemplate>
   <DataTemplate DataType="vm:PokedexPageViewModel">
     <Grid RowDefinitions="Auto,*">
       <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-        <Button Content="Coleção" Command="{Binding ShowCollectionCommand}" Classes.accent="{Binding !ShowLivingDex}" />
+        <Button Content="Coleção" Command="{Binding ShowCollectionCommand}" Classes.accent="{Binding ShowCollection}" />
         <Button Content="Living Dex" Command="{Binding ShowLivingDexCommand}" Classes.accent="{Binding ShowLivingDex}" />
+        <Button Content="Nuzlocke" Command="{Binding ShowNuzlockeCommand}" Classes.accent="{Binding ShowNuzlocke}"
+                ToolTip.Tip="Relatório de Nuzlocke do save aberto: o primeiro encontro de cada rota, repetidos, vivos e mortos" />
       </StackPanel>
       <ContentControl Grid.Row="1" Content="{Binding LivingDex}" IsVisible="{Binding ShowLivingDex}" />
-    <Grid Grid.Row="1" ColumnDefinitions="*,16,Auto" IsVisible="{Binding !ShowLivingDex}">
+      <ContentControl Grid.Row="1" Content="{Binding Nuzlocke}" IsVisible="{Binding ShowNuzlocke}" />
+    <Grid Grid.Row="1" ColumnDefinitions="*,16,Auto" IsVisible="{Binding ShowCollection}">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,10">
           <StackPanel Spacing="2">
@@ -772,17 +872,66 @@
       <!-- Detalhes da especie selecionada -->
       <Border Grid.Column="2" Classes="card" Width="{Binding $parent[UserControl].Bounds.Width, Converter={x:Static c:WidthPickConverter.Instance}, ConverterParameter='1400,320,250'}">
         <Panel>
-          <TextBlock Text="Clique numa espécie para ver onde estão os seus Pokémon e em quais Pokédex ela foi registrada."
-                     Classes="muted" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !HasSelection}" />
+          <!-- Sem especie escolhida: resumo da colecao, o que falta por geracao e "proxima que falta" -->
+          <ScrollViewer IsVisible="{Binding !HasSelection}">
+            <StackPanel Spacing="14">
+              <TextBlock Text="RESUMO" Classes="section" Margin="0" FontSize="10" />
+              <ItemsControl ItemsSource="{Binding Progress}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DexProgressViewModel">
+                    <StackPanel Spacing="4">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="muted" FontSize="12" />
+                      </Grid>
+                      <ProgressBar Classes="dexProgress" Minimum="0" Maximum="100" Value="{Binding Percent}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="FALTAM POR GERAÇÃO" Classes="section" Margin="0,4,0,0" FontSize="10" IsVisible="{Binding !IsComplete}" />
+              <TextBlock Text="✔ Living dex completa neste filtro." FontWeight="SemiBold" TextWrapping="Wrap" IsVisible="{Binding IsComplete}" />
+              <ItemsControl ItemsSource="{Binding MissingByGeneration}" IsVisible="{Binding !IsComplete}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="4" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DexMissingGenViewModel">
+                    <Button Classes="ghost small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Command="{Binding Command}" CommandParameter="{Binding Generation}" ToolTip.Tip="Mostra só as que faltam desta geração">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="muted" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Content="Próxima que falta ›"
+                      Command="{Binding NextMissingCommand}" IsVisible="{Binding !IsComplete}"
+                      ToolTip.Tip="Escolhe a primeira espécie da lista que você ainda não tem" />
+              <TextBlock Text="Clique numa espécie para ver onde estão os seus Pokémon e em quais Pokédex ela foi registrada."
+                         Classes="muted" FontSize="12" TextWrapping="Wrap" />
+            </StackPanel>
+          </ScrollViewer>
           <ScrollViewer IsVisible="{Binding HasSelection}">
             <StackPanel Spacing="10" DataContext="{Binding Selected}" x:DataType="vm:DexCardViewModel">
+              <Button Classes="ghost small" Content="‹ Resumo" HorizontalAlignment="Left" Margin="-6,-4,0,0"
+                      Command="{Binding $parent[ScrollViewer].((vm:PokedexPageViewModel)DataContext).ClearSelectionCommand}"
+                      ToolTip.Tip="Volta para o resumo da coleção" />
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                 <Border Classes="spriteWell" Width="96" Height="96">
                   <Image Source="{Binding Sprite}" Stretch="Uniform" Margin="8" />
                 </Border>
                 <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                   <TextBlock Text="{Binding Number}" Classes="muted" />
-                  <TextBlock Text="{Binding Name}" Classes="title" TextWrapping="Wrap" />
+                  <!-- Fontes largas (Pokemon GB) quebravam o nome no meio ("Ivysa/ur"): encolhe para caber -->
+                  <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
+                    <TextBlock Text="{Binding Name}" Classes="title" />
+                  </Viewbox>
                   <TextBlock Text="{Binding FormName}" Classes="muted" IsVisible="{Binding HasFormName}" TextWrapping="Wrap" />
                   <ItemsControl ItemsSource="{Binding Types}">
                     <ItemsControl.ItemsPanel>
@@ -811,7 +960,7 @@
               </StackPanel>
               <StackPanel Spacing="6" DataContext="{Binding $parent[ScrollViewer].((vm:PokedexPageViewModel)DataContext)}" x:DataType="vm:PokedexPageViewModel">
                 <TextBlock Text="ONDE ESTÃO" Classes="section" Margin="0" FontSize="10" />
-                <TextBlock Text="Nenhum Pokémon desta espécie guardado." Classes="muted" FontSize="12"
+                <TextBlock Text="Nenhum Pokémon desta espécie guardado." Classes="muted" FontSize="12" TextWrapping="Wrap"
                            IsVisible="{Binding HasNoLocations}" />
                 <ItemsControl ItemsSource="{Binding Locations}">
                   <ItemsControl.ItemsPanel>

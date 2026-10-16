@@ -17,6 +17,16 @@ public abstract class PageViewModel : ViewModelBase
     public abstract string Icon { get; }
     /// <summary>Atalho exibido na barra lateral (Ctrl+1, Ctrl+2...). Definido pelo MainViewModel.</summary>
     public string Shortcut { get; set; } = "";
+    private string _groupHeader = "";
+    /// <summary>Titulo do grupo na barra lateral, so na primeira pagina de cada grupo (definido pelo MainViewModel).</summary>
+    public string GroupHeader
+    {
+        get => _groupHeader;
+        set { if (Set(ref _groupHeader, value)) { Raise(nameof(IsGroupStart)); Raise(nameof(NavMargin)); } }
+    }
+    public bool IsGroupStart => _groupHeader.Length > 0;
+    /// <summary>Espaco acima da linha para o titulo do grupo (a linha em si tem altura fixa).</summary>
+    public Avalonia.Thickness NavMargin => IsGroupStart ? new(0, 26, 0, 0.5) : new(0, 0.5);
     /// <summary>Chamado quando a pagina altera o save (marca alteracoes nao exportadas).</summary>
     public Action? Changed { get; set; }
     /// <summary>Indica se a pagina se aplica ao save atual (ex.: jogos sem mochila).</summary>

@@ -34,30 +34,46 @@ public sealed class PokedexPageViewModel : PageViewModel
         _goTo = goTo;
         _confirm = confirm ?? ((_, _, _, _) => Task.FromResult(true));
         _report = status ?? (_ => { });
-        SyncCommand = new RelayCommand(() => _ = SyncAsync(), () => _sav is { HasPokeDex: true } && !IsBusy);
-        SyncAllCommand = new RelayCommand(() => _ = SyncAllAsync(), () => !IsBusy && _sources.Count(x => !x.IsBank) > 1);
+        SyncCommand = new RelayCommand(() => _ = SyncAsync(), () => _sav is { HasPokeDex: true } && !IsBusy && IsHardcore?.Invoke() != true);
+        SyncAllCommand = new RelayCommand(() => _ = SyncAllAsync(), () => !IsBusy && _sources.Count(x => !x.IsBank) > 1 && IsHardcore?.Invoke() != true);
         RefreshCommand = new RelayCommand(() => _ = RefreshAsync());
         SelectCommand = new RelayCommand(p => { if (p is DexCardViewModel c) Selected = c; });
         SetGenerationCommand = new RelayCommand(p => GenerationFilter = p is int g && g != GenerationFilter ? g : null);
+        Nuzlocke = new NuzlockeViewModel(goTo, _report);
         Generations = [.. Enumerable.Range(1, 9).Select(g => new GenerationFilterViewModel(g))];
         TypeOptions = ["Todos os tipos", .. GameInfo.Strings.types.Take(18)];
     }
 
     public override string Title => "Pokédex";
     public LivingDexViewModel? LivingDex { get; set; }
-    private bool _livingDex;
-    public bool ShowLivingDex
+    /// <summary>Relatório de Nuzlocke do save aberto (terceira aba).</summary>
+    public NuzlockeViewModel Nuzlocke { get; }
+    // Aba atual: 0 = Coleção, 1 = Living Dex, 2 = Nuzlocke
+    private int _view;
+    private void SetView(int view)
     {
-        get => _livingDex;
-        set { if (Set(ref _livingDex, value) && value && LivingDex is { Plan: null }) _ = LivingDex.RefreshAsync(); }
+        if (!Set(ref _view, view, nameof(View)))
+            return;
+        foreach (var p in (string[])[nameof(ShowLivingDex), nameof(ShowCollection), nameof(ShowNuzlocke)])
+            Raise(p);
+        if (view == 1 && LivingDex is { Plan: null })
+            _ = LivingDex.RefreshAsync();
+        if (view == 2)
+            Nuzlocke.Refresh(); // o save pode ter mudado desde a ultima vez
     }
-    public RelayCommand ShowCollectionCommand => new(() => ShowLivingDex = false);
-    public RelayCommand ShowLivingDexCommand => new(() => ShowLivingDex = true);
+    public int View => _view;
+    public bool ShowLivingDex { get => _view == 1; set => SetView(value ? 1 : 0); }
+    public bool ShowCollection => _view == 0;
+    public bool ShowNuzlocke { get => _view == 2; set => SetView(value ? 2 : 0); }
+    public RelayCommand ShowCollectionCommand => new(() => SetView(0));
+    public RelayCommand ShowLivingDexCommand => new(() => SetView(1));
+    public RelayCommand ShowNuzlockeCommand => new(() => SetView(2));
     public override string Icon => "📖";
 
     public override void Load(SaveFile sav)
     {
         _sav = sav;
+        Nuzlocke.Load(sav);
         SyncCommand.NotifyCanExecuteChanged();
         foreach (var p in (string[])[nameof(CanEditDex), nameof(HasShinyOption), nameof(DexCounts)]) Raise(p);
     }
@@ -66,7 +82,15 @@ public sealed class PokedexPageViewModel : PageViewModel
     public Action<string, Action>? EditSave { get; set; }
 
     /// <summary>Completar/limpar a Pokedex do save aberto (Gen 1 a 9, menos Legends: Arceus).</summary>
-    public bool CanEditDex => DexCompletion.IsSupported(_sav);
+    public bool CanEditDex => IsHardcore?.Invoke() != true && DexCompletion.IsSupported(_sav);
+    /// <summary>Modo Hardcore (definido pelo MainViewModel): completar e sincronizar a Pokédex ficam desligados.</summary>
+    public Func<bool>? IsHardcore { get; set; }
+    public void RaiseHardcore()
+    {
+        Raise(nameof(CanEditDex));
+        SyncCommand.NotifyCanExecuteChanged();
+        SyncAllCommand.NotifyCanExecuteChanged();
+    }
     public bool HasShinyOption => DexCompletion.HasShinyOption(_sav);
     private bool _includeShiny;
     /// <summary>Marca tambem as formas shiny como vistas (Gen 5 em diante).</summary>
@@ -216,6 +240,32 @@ public sealed class PokedexPageViewModel : PageViewModel
     public bool HasSelection => Selected is not null;
     public bool HasNoLocations => Locations.Count == 0;
 
+    /// <summary>Painel sem espécie escolhida: progresso da coleção (antes ficava só uma frase no meio do cartão).</summary>
+    public IReadOnlyList<DexProgressViewModel> Progress { get; private set; } = [];
+    /// <summary>Quantas faltam (living dex) em cada geração; clicar filtra a lista por ela.</summary>
+    public IReadOnlyList<DexMissingGenViewModel> MissingByGeneration { get; private set; } = [];
+    public bool IsComplete => MissingByGeneration.Count == 0 && Cards.Count > 0;
+    public RelayCommand ShowMissingCommand => _showMissing ??= new(p =>
+    {
+        if (p is not int g)
+            return;
+        StatusIndex = 2; // Faltando (living dex)
+        GenerationFilter = g;
+    });
+    private RelayCommand? _showMissing;
+    /// <summary>Escolhe a primeira espécie da lista que ainda falta (na ordem da Pokédex, depois da escolhida).</summary>
+    public RelayCommand NextMissingCommand => _nextMissing ??= new(() =>
+    {
+        var list = VisibleCards.Where(c => !c.IsOwned).ToList();
+        if (list.Count == 0)
+            return;
+        int after = Selected is null ? -1 : list.IndexOf(Selected);
+        Selected = list[(after + 1) % list.Count];
+    });
+    private RelayCommand? _nextMissing;
+    public RelayCommand ClearSelectionCommand => _clearSelection ??= new(() => Selected = null);
+    private RelayCommand? _clearSelection;
+
     /// <summary>Onde esta cada Pokemon da especie selecionada (na fonte escolhida).</summary>
     public IReadOnlyList<DexLocationViewModel> Locations => Selected is null ? []
         : [.. Selected.Entry.Owned.Where(l => Source is null || l.Source == Source)
@@ -285,7 +335,7 @@ public sealed class PokedexPageViewModel : PageViewModel
     /// </summary>
     private async Task SyncAsync()
     {
-        if (_sav is not { HasPokeDex: true } sav || _species.Count == 0)
+        if (_sav is not { HasPokeDex: true } sav || _species.Count == 0 || IsHardcore?.Invoke() == true)
             return;
         var max = Math.Min(sav.MaxSpeciesID, PokedexService.MaxSpecies);
         bool Caught(ushort s) { try { return sav.GetCaught(s); } catch { return true; } }
@@ -340,7 +390,7 @@ public sealed class PokedexPageViewModel : PageViewModel
     /// </summary>
     private async Task SyncAllAsync()
     {
-        if (_species.Count == 0)
+        if (_species.Count == 0 || IsHardcore?.Invoke() == true)
             return;
         IsBusy = true;
         List<SyncPlan> plans;
@@ -497,6 +547,27 @@ public sealed class PokedexPageViewModel : PageViewModel
                         || (ushort.TryParse(query.TrimStart('#'), out var n) && n == e.Species);
             c.IsVisible = inScope && status && text;
         }
+        // Resumo do painel sem selecao: as quatro barras e quantas faltam em cada geracao (ignora o filtro de geracao)
+        var missing = new int[10];
+        foreach (var c in Cards)
+        {
+            var e = c.Entry;
+            if (!c.IsOwned && e.Generation is >= 1 and <= 9 && (source is null || e.Species <= source.MaxSpecies)
+                && (_type == 0 || e.Type1 == _type - 1 || e.Type2 == _type - 1))
+                missing[e.Generation]++;
+        }
+        Progress =
+        [
+            new DexProgressViewModel("Living dex", owned, scope),
+            new DexProgressViewModel("Shiny dex", shiny, scope),
+            new DexProgressViewModel("Capturadas na Pokédex", caught, scope),
+            new DexProgressViewModel("Vistas", seen, scope),
+        ];
+        MissingByGeneration = [.. Enumerable.Range(1, 9).Where(g => missing[g] > 0)
+            .Select(g => new DexMissingGenViewModel(g, missing[g], ShowMissingCommand))];
+        Raise(nameof(Progress));
+        Raise(nameof(MissingByGeneration));
+        Raise(nameof(IsComplete));
         string Pct(int n) => scope == 0 ? "0%" : $"{100.0 * n / scope:0.#}%";
         var what = ShowForms ? "formas" : "espécies";
         Stats = $"Living dex {owned}/{scope} {what} ({Pct(owned)}) · Shiny dex {shiny}/{scope} ({Pct(shiny)}) · Capturadas na Pokédex {caught}/{scope} · Vistas {seen}/{scope}"
@@ -618,4 +689,18 @@ public sealed class DexLocationViewModel(DexLocation location, RelayCommand? goC
     public bool IsShiny => location.IsShiny;
     public RelayCommand? GoCommand { get; } = goCommand;
     public bool CanGo => GoCommand is not null;
+}
+
+/// <summary>Uma barra do resumo da Pokédex (living dex, shiny dex, capturadas, vistas).</summary>
+public sealed record DexProgressViewModel(string Label, int Done, int Total)
+{
+    public double Percent => Total == 0 ? 0 : 100.0 * Done / Total;
+    public string Text => $"{Done}/{Total}";
+}
+
+/// <summary>Geração com espécies faltando no resumo da Pokédex (clique filtra por ela).</summary>
+public sealed record DexMissingGenViewModel(int Generation, int Missing, RelayCommand Command)
+{
+    public string Label => $"Gen {Generation}";
+    public string Text => Missing == 1 ? "falta 1" : $"faltam {Missing}";
 }

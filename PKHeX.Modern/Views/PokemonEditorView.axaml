@@ -83,13 +83,13 @@
     </Border>
 
     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-      <Button Content="⇩ Colar Showdown" FontSize="13" Padding="6,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnImportShowdown" />
+      <Button Content="⇩ Colar Showdown" IsEnabled="{Binding CanEdit}" FontSize="13" Padding="6,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnImportShowdown" />
       <Button Grid.Column="1" Content="⇧ Copiar Showdown" FontSize="13" Padding="6,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnExportShowdown" />
     </Grid>
 
     <TabControl Classes="editorTabs" SelectedIndex="{Binding SelectedTab}">
       <TabItem Header="Visão geral">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <!-- Geral -->
           <Border Classes="card">
             <StackPanel>
@@ -235,7 +235,7 @@
         </StackPanel>
       </TabItem>
       <TabItem Header="Atributos">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <!-- Atributos -->
           <Border Classes="card" IsVisible="{Binding HasHiddenPower}">
             <StackPanel Spacing="8">
@@ -320,7 +320,7 @@
         </StackPanel>
       </TabItem>
       <TabItem Header="Golpes">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <!-- Golpes -->
           <Border Classes="card">
             <StackPanel Spacing="6">
@@ -378,7 +378,7 @@
         </StackPanel>
       </TabItem>
       <TabItem Header="Encontro">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <!-- Encontro -->
           <Border Classes="card">
             <StackPanel>
@@ -411,7 +411,7 @@
         </StackPanel>
       </TabItem>
       <TabItem Header="Treinador">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <!-- Treinador original -->
           <Border Classes="card">
             <StackPanel>
@@ -431,7 +431,7 @@
         </StackPanel>
       </TabItem>
       <TabItem Header="Extras">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <Border Classes="card" IsVisible="{Binding HasPokerus}">
             <StackPanel Spacing="8">
               <TextBlock Text="Pokérus" Classes="section" />
@@ -524,7 +524,7 @@
         </StackPanel>
       </TabItem>
       <TabItem Header="Fitas e memórias">
-        <StackPanel Spacing="12" Margin="0,12,0,0">
+        <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
           <!-- Fitas -->
           <Border Classes="card" IsVisible="{Binding HasRibbons}">
             <StackPanel Spacing="8">
@@ -569,6 +569,11 @@
       </TabItem>
     </TabControl>
 
+    <!-- Modo Hardcore: so leitura -->
+    <Border Classes="legalBlock" IsVisible="{Binding ReadOnly}">
+      <TextBlock TextWrapping="Wrap" FontSize="12"
+                 Text="🔒 Modo Hardcore: o editor só mostra os dados. Para mover, arraste o Pokémon para outro slot, caixa ou para o Bank." />
+    </Border>
     <Border Classes="legalBlock" IsVisible="{Binding ShowLegalModeBlock}">
       <TextBlock TextWrapping="Wrap" FontSize="12"
                  Text="🛡 Modo legal: este Pokémon está ilegal e não pode ser aplicado. Use ✨ Legalizar ou as correções sugeridas na aba Visão geral." />

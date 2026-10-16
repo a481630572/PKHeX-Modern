@@ -48,6 +48,8 @@ var bank = "Coleção"; BankStorage.CreateBank(bank);
 var bankBox = BankStorage.GetBoxes(bank).First();
 for (int i = 0; i < species.Length; i++) BankStorage.WriteSlot(bankBox, i, sav.GetBoxSlotAtIndex(0, i));
 var vm = new MainViewModel(new AppSettings { SavesFolder = library, CheckForUpdates = false });
+// Caminho neutro na pagina Saves: a pasta temporaria tem o nome do usuario do Windows.
+vm.SaveManager.DescribeFolder = () => "Documentos/PKHeX/saves";
 var win = new MainWindow { DataContext = vm, Width = 1500, Height = 1100 }; win.Show();
 void Pump() { for (int i = 0; i < 4; i++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); } }
 void Wait(Task task) { for (int i = 0; i < 6000 && !task.IsCompleted; i++) { Pump(); System.Threading.Thread.Sleep(5); } if (!task.IsCompleted) throw new TimeoutException(); task.GetAwaiter().GetResult(); Pump(); }
@@ -106,6 +108,27 @@ var bd = BlankSaveFile.Get(GameVersion.BD); bd.OT = "Demo"; CoreAdapter.Activate
 var feebas = Make(bd, 349); ((IContestStats)feebas).ContestBeauty = 0; ((IContestStats)feebas).ContestSheen = 0; // o botao mostra "Beauty sobe de 0 para 170"
 bd.SetBoxSlotAtIndex(feebas, 0, 0); var bdPath = Path.Combine(library, "Feebas.sav"); File.WriteAllBytes(bdPath, bd.Write().ToArray());
 vm.Open(bdPath); Wait(vm.SelectSlotAsync(vm.Boxes.Slots[0])); vm.Editor!.SelectedTab = 0; Shot("beauty");
+// Set do Showdown legal: cola um set competitivo num slot vazio do Black e mostra o resultado legalizado
+Wait(vm.OpenAsync(black)); vm.CurrentPage = vm.Boxes; Wait(vm.SelectSlotAsync(vm.Boxes.Slots[20]));
+vm.Editor!.ImportShowdown(string.Join('\n', "Haxorus @ Life Orb", "Ability: Mold Breaker", "EVs: 252 Atk / 4 SpD / 252 Spe", "Jolly Nature",
+    "- Dragon Dance", "- Outrage", "- Earthquake", "- Brick Break"));
+for (int i = 0; i < 6000 && vm.Editor.IsLegalizing; i++) { Pump(); System.Threading.Thread.Sleep(5); }
+vm.Editor.SelectedTab = 0; Shot("showdown"); Run(vm.SelectSlotAsync(vm.Boxes.Slots[0])); // descarta o set colado (a pergunta e respondida pelo Run)
+// Saves dos emuladores (Android): uma "memoria" com os saves sinteticos nas pastas do DraStic, melonDS e Eden
+var storage = Path.Combine(work, "storage");
+void PutSave(string source, string relative)
+{
+    var dest = Path.Combine(storage, relative.Replace('/', Path.DirectorySeparatorChar));
+    Directory.CreateDirectory(Path.GetDirectoryName(dest)!); File.Copy(source, dest, true);
+}
+PutSave(black, "DraStic/backup/POKEMON B.dsv");
+PutSave(nzPath, "melonDS/saves/Pokemon Black - Nuzlocke.sav");
+PutSave(Path.Combine(library, "BD.sav"), "eden/nand/user/save/0000000000000000/00000000000000000000000000000001/0100000011D90000/main");
+EmulatorSaves.StorageRoot = storage; EmulatorSaves.HasAccess = () => true;
+var emptyLibrary = Path.Combine(work, "vazia"); Directory.CreateDirectory(emptyLibrary);
+vm.Settings.EmulatorScan = true; vm.SaveManager.Folder = emptyLibrary; vm.SaveManager.DescribeFolder = () => "📱 Memória do aparelho"; vm.SaveManager.RaiseFolder();
+vm.CurrentPage = vm.SaveManager; Wait(vm.SaveManager.RefreshAsync()); Shot("emulators");
+vm.Settings.EmulatorScan = false; EmulatorSaves.StorageRoot = null; EmulatorSaves.HasAccess = null; vm.SaveManager.Folder = library; vm.SaveManager.DescribeFolder = () => "Documentos/PKHeX/saves"; vm.SaveManager.RaiseFolder();
 // Temas completos: o Inicio em cada tema (e o Pixel tambem no claro), depois volta ao Padrao.
 Wait(vm.OpenAsync(black)); vm.CurrentPage = vm.Home; // a aba do Black (com equipe)
 foreach (var key in new[] { "pss", "pixel", "za", "oras", "kanto" })

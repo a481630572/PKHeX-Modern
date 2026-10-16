@@ -46,6 +46,8 @@ Todos estão na [versão mais recente](https://github.com/carlosmozart/PKHeX-Mod
 | ![Tema Kanto](docs/theme_kanto_light.png) | ![Nuzlocke](docs/nuzlocke.png) |
 | **Fábrica de ovos** | **Modo Hardcore (só mover)** |
 | ![Fábrica de ovos](docs/eggs.png) | ![Modo Hardcore](docs/hardcore.png) |
+| **Set do Showdown legalizado** | **Saves dos emuladores (Android)** |
+| ![Set do Showdown](docs/showdown.png) | ![Saves dos emuladores](docs/emulators.png) |
 
 **No Android**, com a tela deitada (a mesma interface do desktop):
 

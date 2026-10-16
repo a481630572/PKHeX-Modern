@@ -42,14 +42,16 @@ Todos estão na [versão mais recente](https://github.com/carlosmozart/PKHeX-Mod
 | ![Tema Pixel](docs/theme_pixel.png) | ![Tema Pixel claro](docs/theme_pixel_light.png) |
 | **Tema Z-A (Lumiose)** | **Tema ORAS (Pokédex)** |
 | ![Tema Z-A](docs/theme_za.png) | ![Tema ORAS](docs/theme_oras.png) |
-| **Tema Kanto (Pokédex clássica), modo claro** | |
-| ![Tema Kanto](docs/theme_kanto_light.png) | |
+| **Tema Kanto (Pokédex clássica), modo claro** | **Relatório de Nuzlocke** |
+| ![Tema Kanto](docs/theme_kanto_light.png) | ![Nuzlocke](docs/nuzlocke.png) |
+| **Fábrica de ovos** | **Modo Hardcore (só mover)** |
+| ![Fábrica de ovos](docs/eggs.png) | ![Modo Hardcore](docs/hardcore.png) |
 
 **No Android**, com a tela deitada (a mesma interface do desktop):
 
 ![PKHeX Modern no Android](docs/android.png)
 
-Capturas do desktop da versão **0.3.8**, geradas em modo headless com saves sintéticos; a do Android é de um celular de verdade.
+Todas as capturas são geradas em modo headless com saves sintéticos (a do Android usa o layout do celular, `MobileShell`, numa janela em paisagem).
 
 ## Download
 
@@ -139,7 +141,13 @@ o download no navegador.
 - **Formas e gêneros** como entradas próprias (Vulpix de Alola, Unown A–?, Pyroar ♀...), para living dex completa.
 - **Planejador de Living Dex**: escolha o jogo alvo, formas e shiny e veja o melhor candidato de cada espécie entre saves e bank, os faltantes e outros exemplares. **Aplicar** organiza as caixas do save aberto em ordem nacional, com prévia exata (movimentos, cópias de fora, ocupantes realocados), slots protegidos respeitados e um único desfazer.
 - **Sincronizar com o save aberto**: registra na Pokédex do jogo aberto o que foi capturado nos outros saves e o que você tem guardado.
+- **Resumo da coleção**: sem espécie escolhida, o painel mostra barras de Living dex, Shiny dex, capturadas e vistas, quantas faltam em cada geração e "Próxima que falta".
+- **Fábrica de ovos**: um ovo legal para cada espécie que falta no save aberto (da forma básica: Charmander para o Charizard, Pichu para o Pikachu) ou um de cada família, vindos dos ovos de criação do jogo, com o seu treinador, nas vagas livres das caixas; lista antes de gravar e um único Ctrl+Z. Da Gen 2 à Gen 9.
+- **Relatório de Nuzlocke** (aba Nuzlocke): o primeiro Pokémon capturado em cada rota (pela data de captura, da Gen 4 em diante), capturas a mais, repetidos pela família, quem está na equipe, vivo ou morto (caixa do cemitério escolhida pelo nome) e **Copiar relatório** em texto. Trocas, outros jogos e ovos ficam de fora.
 - **Completar a Pokédex do save** (botão ✔): todas as espécies vistas e capturadas, com formas, gêneros e idiomas onde o jogo guarda (e shiny vistos, se quiser), ou só vistas, tirar as capturadas e limpar. Da Gen 1 ao Z-A (menos Legends: Arceus), com Ctrl+Z. Em Sword/Shield, Scarlet/Violet, BD/SP e Z-A vale a Pokédex regional.
+
+**Modo Hardcore**
+- No ⚙, **Modo Hardcore (só mover Pokémon)**, para desafios e RetroAchievements: o editor só mostra os dados; criar, copiar, importar, colar Showdown, legalizar, gerar encontros e eventos e completar a Pokédex ficam desligados, e Treinador, Mochila, Jogo e Edição em lote saem da barra lateral. Mover, trocar, soltar, ordenar e usar o Bank continuam, com Ctrl+Z. Um cartão vermelho no lugar do modo legal mostra que está ligado.
 
 **Caixas e equipe**
 - Cartões grandes com sprite, nome, nível, gênero, bola, ★ shiny e ✓/⚠ de legalidade; caixas em abas no topo.

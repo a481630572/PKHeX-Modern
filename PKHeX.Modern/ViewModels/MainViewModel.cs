@@ -90,6 +90,8 @@ public sealed partial class MainViewModel : ViewModelBase
         Pokedex.LivingDex.LegalMode = () => LegalMode;
         Pokedex.LivingDex.ApplyPlan = ApplyLivingDexAsync;
         Pokedex.IsHardcore = () => Hardcore;
+        Pokedex.MissingEggsCommand = MissingEggsCommand;
+        Pokedex.FamilyEggsCommand = FamilyEggsCommand;
         Pokedex.Nuzlocke.CopyText = text => WriteClipboard?.Invoke(text) ?? Task.CompletedTask;
         Help.PrepareDiagnostic = () => DiagnosticReport.Build(Settings, Views.MainView.SaveFolder?.LastCounts);
         Help.ConfirmDiagnostic = text => ConfirmAsync("Compartilhar diagnóstico", "Confira o texto antes de compartilhar. Mensagens livres e dados de saves são omitidos para proteger sua privacidade.",

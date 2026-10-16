@@ -913,6 +913,17 @@
               <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Content="Próxima que falta ›"
                       Command="{Binding NextMissingCommand}" IsVisible="{Binding !IsComplete}"
                       ToolTip.Tip="Escolhe a primeira espécie da lista que você ainda não tem" />
+              <!-- Fabrica de ovos: gera ovos legais no save aberto, nas vagas livres das caixas -->
+              <StackPanel Spacing="6" IsVisible="{Binding CanMakeEggs}">
+                <TextBlock Text="FÁBRICA DE OVOS" Classes="section" Margin="0,4,0,0" FontSize="10" />
+                <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Content="🥚 Ovos das que faltam"
+                        Command="{Binding MissingEggsCommand}"
+                        ToolTip.Tip="Um ovo legal para cada espécie que falta no save aberto (da forma básica: um ovo de Charmander para o Charizard que falta), nas vagas livres das caixas. Mostra a lista antes de gravar e tem Ctrl+Z." />
+                <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Content="🥚 Um ovo de cada família"
+                        Command="{Binding FamilyEggsCommand}"
+                        ToolTip.Tip="Um ovo legal de cada família que nasce de ovo neste jogo, nas vagas livres das caixas. Mostra a lista antes de gravar e tem Ctrl+Z." />
+                <TextBlock Text="Só no save aberto, nas vagas livres das caixas." Classes="muted" FontSize="11" TextWrapping="Wrap" />
+              </StackPanel>
               <TextBlock Text="Clique numa espécie para ver onde estão os seus Pokémon e em quais Pokédex ela foi registrada."
                          Classes="muted" FontSize="12" TextWrapping="Wrap" />
             </StackPanel>

@@ -75,7 +75,7 @@ public sealed class PokedexPageViewModel : PageViewModel
         _sav = sav;
         Nuzlocke.Load(sav);
         SyncCommand.NotifyCanExecuteChanged();
-        foreach (var p in (string[])[nameof(CanEditDex), nameof(HasShinyOption), nameof(DexCounts)]) Raise(p);
+        foreach (var p in (string[])[nameof(CanEditDex), nameof(CanMakeEggs), nameof(HasShinyOption), nameof(DexCounts)]) Raise(p);
     }
 
     /// <summary>Grava no save aberto com desfazer (o historico da pagina Jogo). Definido pelo MainViewModel.</summary>
@@ -85,8 +85,13 @@ public sealed class PokedexPageViewModel : PageViewModel
     public bool CanEditDex => IsHardcore?.Invoke() != true && DexCompletion.IsSupported(_sav);
     /// <summary>Modo Hardcore (definido pelo MainViewModel): completar e sincronizar a Pokédex ficam desligados.</summary>
     public Func<bool>? IsHardcore { get; set; }
+    /// <summary>Fábrica de ovos (comandos do MainViewModel): só no save aberto, fora do modo Hardcore e a partir da Gen 2.</summary>
+    public RelayCommand? MissingEggsCommand { get; set; }
+    public RelayCommand? FamilyEggsCommand { get; set; }
+    public bool CanMakeEggs => IsHardcore?.Invoke() != true && EggFactory.IsSupported(_sav);
     public void RaiseHardcore()
     {
+        Raise(nameof(CanMakeEggs));
         Raise(nameof(CanEditDex));
         SyncCommand.NotifyCanExecuteChanged();
         SyncAllCommand.NotifyCanExecuteChanged();

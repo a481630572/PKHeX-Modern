@@ -124,4 +124,51 @@ vm.Hardcore = false; Pump();
 Wait(vm.SelectSlotAsync(vm.Boxes.Slots[10]));
 Check("desligar: páginas e editor voltam", vm.Pages.Count == pagesBefore && vm.Editor is { ReadOnly: false });
 
+
+// ---------- Fabrica de ovos ----------
+var eggSav = BlankSaveFile.Get(GameVersion.B); eggSav.OT = "Demo"; CoreAdapter.Activate(eggSav);
+var plan = EggFactory.Plan(eggSav, onlyMissing: true);
+Check("plano: ovo da forma básica para cada espécie que falta", plan.Count > 400 && plan.Any(x => x.For == 2 && x.Species == 1) && plan.Any(x => x.For == 25 && x.Species == 172));
+Check("plano: lendários ficam de fora", !plan.Any(x => x.For is 150 or 151 or 249));
+Check("plano por família: só formas básicas", EggFactory.Plan(eggSav, onlyMissing: false).All(x => x.For == x.Species));
+var sw = System.Diagnostics.Stopwatch.StartNew();
+var made = EggFactory.Make(eggSav, [.. plan.Where(x => x.For is 1 or 2 or 4 or 25)], requireLegal: true);
+Console.WriteLine($"   4 ovos em {sw.ElapsedMilliseconds} ms");
+Check("ovos legais gerados", made.Count == 4 && made.All(r => r.Egg is { IsEgg: true } e && new LegalityAnalysis(e).Valid)
+    && made[1].Egg!.Species == 1 && made[3].Egg!.Species == 172);
+var emEggs = EggFactory.Make(em, [.. EggFactory.Plan(em, onlyMissing: false).Take(3)], requireLegal: true);
+Check("Gen 3: ovo com o local de eclosão e nível 0", emEggs.All(x => x.Egg is { IsEgg: true, MetLevel: 0 } e && new LegalityAnalysis(e).Valid));
+Check("Gen 1 não tem ovos", !EggFactory.IsSupported(BlankSaveFile.Get(GameVersion.RD)));
+
+// Pela interface: caixas quase cheias (3 vagas), confirma a lista e grava com um desfazer
+var filler = Make(eggSav, 504);
+for (int b = 0; b < eggSav.BoxCount; b++)
+    for (int sl = 0; sl < eggSav.BoxSlotCount; sl++)
+        if (!(b == 0 && sl >= eggSav.BoxSlotCount - 3))
+            eggSav.SetBoxSlotAtIndex(filler, b, sl);
+var eggPath = Path.Combine(lib, "Eggs.sav"); File.WriteAllBytes(eggPath, eggSav.Write().ToArray());
+vm.Open(eggPath); Pump();
+ConfirmDialogViewModel? lastDialog = null;
+void Run(Task t)
+{
+    for (int i = 0; i < 30000 && !t.IsCompleted; i++)
+    {
+        Pump(2);
+        if (vm.Dialog is { } d) { lastDialog = d; d.Complete(true); }
+        System.Threading.Thread.Sleep(2);
+    }
+    t.GetAwaiter().GetResult(); Pump();
+}
+int Eggs() => Enumerable.Range(0, eggSav.BoxSlotCount).Count(i => vm.ActiveTab!.Sav.GetBoxSlotAtIndex(0, i) is { IsEgg: true });
+vm.Hardcore = true;
+Run(vm.EggFactoryAsync(true));
+Check("Hardcore: fábrica de ovos bloqueada", lastDialog is null && vm.Status.Contains("Modo Hardcore") && Eggs() == 0);
+vm.Hardcore = false;
+vm.Boxes.CurrentBox = 0;
+Run(vm.EggFactoryAsync(true));
+Check("fábrica: lista confirmada e 3 ovos nas vagas", lastDialog?.Details.Count(d => d.StartsWith("🥚")) == 3 && Eggs() == 3 && vm.IsDirty);
+vm.UndoCommand.Execute(null); Pump();
+Check("fábrica: Ctrl+Z tira os ovos de uma vez", Eggs() == 0);
+Check("Pokédex mostra a fábrica no save aberto", vm.Pokedex.CanMakeEggs && vm.Pokedex.MissingEggsCommand is not null);
+
 Console.WriteLine(fails == 0 ? "TUDO OK" : $"{fails} FALHAS"); return fails == 0 ? 0 : 1;

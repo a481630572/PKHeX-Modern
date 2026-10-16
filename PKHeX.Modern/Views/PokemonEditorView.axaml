@@ -87,6 +87,11 @@
       <Button Grid.Column="1" Content="⇧ Copiar Showdown" FontSize="13" Padding="6,6" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="OnExportShowdown" />
     </Grid>
 
+    <!-- Modo Hardcore: so leitura (no topo, para ser visto no celular) -->
+    <Border Classes="legalBlock" IsVisible="{Binding ReadOnly}">
+      <TextBlock TextWrapping="Wrap" FontSize="12"
+                 Text="🔒 Modo Hardcore: o editor só mostra os dados. Para mover, arraste o Pokémon para outro slot, caixa ou para o Bank." />
+    </Border>
     <TabControl Classes="editorTabs" SelectedIndex="{Binding SelectedTab}">
       <TabItem Header="Visão geral">
         <StackPanel Spacing="12" Margin="0,12,0,0" IsEnabled="{Binding CanEdit}">
@@ -569,11 +574,6 @@
       </TabItem>
     </TabControl>
 
-    <!-- Modo Hardcore: so leitura -->
-    <Border Classes="legalBlock" IsVisible="{Binding ReadOnly}">
-      <TextBlock TextWrapping="Wrap" FontSize="12"
-                 Text="🔒 Modo Hardcore: o editor só mostra os dados. Para mover, arraste o Pokémon para outro slot, caixa ou para o Bank." />
-    </Border>
     <Border Classes="legalBlock" IsVisible="{Binding ShowLegalModeBlock}">
       <TextBlock TextWrapping="Wrap" FontSize="12"
                  Text="🛡 Modo legal: este Pokémon está ilegal e não pode ser aplicado. Use ✨ Legalizar ou as correções sugeridas na aba Visão geral." />

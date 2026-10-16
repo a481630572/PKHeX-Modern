@@ -58,9 +58,18 @@ O usuário delega levas de funções ao Codex com enunciados `TAREFA-CODEX-FUNCO
 - **Formato do enunciado:** siga o das anteriores (regras do projeto, ordem das funções, testes obrigatórios, "fora desta tarefa", entrega).
 - **Próxima tarefa:** nenhuma leva pendente; a sexta (auditoria de duplicados e aplicar a Living Dex) saiu na 0.4.19. A próxima leva será a sétima (`TAREFA-CODEX-FUNCOES-7.md`).
 
-## Pendências em aberto (10/10/2026)
+## Pendências em aberto (16/10/2026)
 
-- **No celular:** conferir a tela cheia do Android (0.4.18), o toque longo nos botões e o segurar-e-arrastar de slot (0.4.16).
+Última release: **0.4.27**. Nenhuma tarefa pedida ficou pela metade; o que segue são ideias e conferências ainda não feitas.
+
+- **No celular (testar no aparelho do usuário, tema ORAS + fonte Pokémon GB):** as telas da 0.4.26 e 0.4.27 (Início com status, barra lateral em grupos com ícones, resumo e fábrica de ovos da Pokédex, aba Nuzlocke, cartão e editor do modo Hardcore); também a tela cheia (0.4.18), o toque longo nos botões e o segurar-e-arrastar de slot (0.4.16). Para conferir sem o aparelho, renderize o `MobileShell` em 892×412 (como o `Tools/PKHeX.Modern.Tests/Docs` faz com a captura `android.png`).
+- **Ideias vindas do PKForge** (github.com/sofianeelhor/PKForge, concorrente no Android, analisado em 16/10/2026), em ordem de interesse:
+  1. **Achar sozinho os saves dos emuladores no Android** (RetroArch, DraStic, melonDS, Dolphin, Azahar/Citra, Eden): pastas padrão de cada um sobre a pasta de saves que já existe (`Services/MobileSaveFolder`). Maior ganho de primeira impressão no celular; precisa de teste no aparelho.
+  2. **Auto Legality Mod** (set do Showdown → Pokémon legal, offline): antes, avaliar a viabilidade (o plugin depende só do Core ou também do WinForms?) e pedir permissão para baixar o projeto; é uma dependência de fora para manter.
+  3. **Pequenas:** travar uma caixa contra mudanças, trocar a natureza mantendo o shiny, QR com o set do Showdown para passar entre aparelhos, mochila com conjuntos prontos.
+  - Fora de escopo: ROM hacks (exigem um fork do Core), o "Poképark" e a segunda tela de portáteis duplos.
+- **Editores de nicho** (candidatos à 7ª leva do Codex): arranjo das decorações da base secreta, ranks por espécie do Battle Hall e do Battle Castle.
+- **Capturas:** o projeto `Tools/PKHeX.Modern.Tests/Docs` regenera todas as capturas do README e do site (inclusive `android.png`, temas ORAS/Kanto, Nuzlocke, fábrica de ovos e Hardcore): `dotnet run -c Release --project Tools/PKHeX.Modern.Tests/Docs -- PKHeX.Modern/docs`.
 - **Página de divulgação:** `docs/index.html`, publicada pelo GitHub Pages a partir da pasta `/docs` do `modern-ui` (endereço: https://carlosmozart.github.io/PKHeX-Modern/). As imagens vêm de `PKHeX.Modern/docs` pelo raw do GitHub (capturas headless com saves sintéticos, nunca saves reais) e os downloads usam `releases/latest/download/<pacote>`, então a página não precisa mudar a cada release. Ao criar uma função visível, considere uma captura nova e um cartão na página.
 - **Outro PC:** apontar o remote para o nome novo:
   `git remote set-url origin https://github.com/carlosmozart/PKHeX-Modern.git`

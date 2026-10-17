@@ -11,6 +11,7 @@ Formato: "## versão — data", "### seção", "- item".
 ### ✨ Caçada shiny
 - **Nova página Caçada shiny** (no fim da barra lateral): contador com +1, Espaço ou +, desfazer e somar vários; chance por encontro de cada método do jogo aberto (Masuda, Poké Radar, pesca em corrente, Friend Safari, SOS, Catch Combo, Dynamax Adventure, surtos e sanduíche do SV...), chance de já ter achado, encontros para 50/90/99% com a curva, tempo caçando e ritmo por hora. Cada método mostra a fonte; os de valor duvidoso aparecem como “a conferir”.
 - **Lê o save:** o Shiny Charm vem marcado se estiver na mochila, e ao abrir um save com um shiny novo da espécie da caçada o app oferece concluir, com o local e a data de captura.
+- **Fases e troféus:** “Registrar fase” guarda um shiny que não era o alvo sem zerar a caçada (um shiny novo de outra espécie no save também é oferecido como fase); a caçada concluída vira troféu com jogo, método, encontros, fases, data e “Ir” para o Pokémon no save; “Exportar CSV” salva tudo numa planilha.
 - **Onde encontrar:** locais e níveis do alvo no jogo, aviso de shiny lock e os golpes do selvagem que podem estragar a caçada (Explosion, Self-Destruct, Roar, Whirlwind, Teleport, Perish Song, recuo...), com o que fazer.
 
 ## 0.4.28 — 2026-10-16

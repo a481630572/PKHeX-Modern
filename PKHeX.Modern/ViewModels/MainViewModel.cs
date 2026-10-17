@@ -135,7 +135,11 @@ public sealed partial class MainViewModel : ViewModelBase
         Gifts.PropertyChanged += (_, _) => AddSelectedCardCommand.NotifyCanExecuteChanged();
         Game.PropertyChanged += (_, _) => AddSelectedCardCommand.NotifyCanExecuteChanged();
         var bag = new BagPageViewModel(s => Status = s);
-        ShinyHunt = new ShinyHuntPageViewModel(s => Status = s);
+        ShinyHunt = new ShinyHuntPageViewModel(s => Status = s, (box, slot) => _ = GoToSlotAsync(box, slot))
+        {
+            Confirm = (t, m, ok) => ConfirmAsync(t, m, ok, icon: "✨"),
+            SaveCsv = (bytes, name) => SaveBoxReport?.Invoke(bytes, name) ?? Task.FromResult(false),
+        };
         AllPages = [Boxes, Party, Bank, Pokedex, new TrainerPageViewModel(), bag, Encounters, Gifts, SaveManager, Game, Search, Batch, ShinyHunt];
         // Atalhos da pagina Jogo podem dar itens (Member Card, Colorful Screws...) e liberar a Pokedex Nacional
         Game.BeforeShortcut = ApplyPendingPages;
@@ -1000,20 +1004,30 @@ public sealed partial class MainViewModel : ViewModelBase
         _ = OfferShinyFoundAsync();
     }
 
-    /// <summary>"Achei!": um shiny novo da espécie da caçada apareceu no save aberto; pergunta se conclui a caçada.</summary>
+    /// <summary>
+    /// "Achei!": um shiny novo apareceu no save aberto. Da espécie da caçada, pergunta se conclui; de outra espécie,
+    /// pergunta se registra como fase. Vários de uma vez são perguntados um por um.
+    /// </summary>
     private async Task OfferShinyFoundAsync()
     {
-        if (ShinyHunt.FindNewShiny() is not { } hit)
-            return;
-        var name = CoreAdapter.SpeciesNames[hit.Pk.Species];
-        var caught = ShinyHuntInfo.CaughtText(hit.Pk);
-        bool finish = await ConfirmAsync("✨ Shiny encontrado!",
-            string.Format(Loc.T("Tem um {0} shiny novo no save ({1}). Concluir a caçada de {2} com {3:N0} encontros?"),
-                name, string.Join(" · ", new[] { hit.Where, caught }.Where(x => x.Length > 0)), ShinyHunt.TargetName, ShinyHunt.Count),
-            "Concluir caçada", "Ainda não", icon: "✨");
-        ShinyHunt.Resolve(hit.Pk, hit.Where, finish);
-        if (finish)
-            Status = string.Format(Loc.T("Caçada de {0} concluída. Parabéns!"), ShinyHunt.TargetName);
+        for (int guard = 0; guard < 30 && ShinyHunt.FindNewShiny() is { } hit; guard++)
+        {
+            var name = CoreAdapter.SpeciesNames[hit.Pk.Species];
+            var place = string.Join(" · ", new[] { hit.Where, ShinyHuntInfo.CaughtText(hit.Pk) }.Where(x => x.Length > 0));
+            bool accept = hit.IsTarget
+                ? await ConfirmAsync("✨ Shiny encontrado!",
+                    string.Format(Loc.T("Tem um {0} shiny novo no save ({1}). Concluir a caçada de {2} com {3:N0} encontros?"), name, place, ShinyHunt.TargetName, ShinyHunt.Count),
+                    "Concluir caçada", "Ainda não", icon: "✨")
+                : await ConfirmAsync("✨ Shiny de outra espécie",
+                    string.Format(Loc.T("Tem um {0} shiny novo no save ({1}), mas a caçada é de {2}. Registrar como fase no encontro {3:N0}?"), name, place, ShinyHunt.TargetName, ShinyHunt.Count),
+                    "Registrar fase", "Não", icon: "✨");
+            ShinyHunt.Resolve(hit.Pk, hit.Where, hit.IsTarget, accept);
+            if (accept && hit.IsTarget)
+            {
+                Status = string.Format(Loc.T("Caçada de {0} concluída. Parabéns!"), ShinyHunt.TargetName);
+                return;
+            }
+        }
     }
 
     /// <summary>

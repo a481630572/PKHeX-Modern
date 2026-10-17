@@ -71,8 +71,8 @@ void Run(Func<Task> action, bool answer = true)
 {
     var t = action();
     for (int i = 0; i < 3000 && !t.IsCompleted; i++) { Pump(2); if (vm.Dialog is { } d) { lastDialog = d; d.Complete(answer); } System.Threading.Thread.Sleep(2); }
-    Pump(20);
-    if (vm.Dialog is { } late) { lastDialog = late; late.Complete(answer); Pump(20); }
+    // O "Achei!" pergunta depois de abrir, e pode perguntar mais de uma vez (fase e conclusão)
+    for (int i = 0; i < 100; i++) { Pump(2); if (vm.Dialog is { } late) { lastDialog = late; late.Complete(answer); } System.Threading.Thread.Sleep(2); }
 }
 void Shot(string name) { Pump(15); win.UpdateLayout(); Pump(5); win.CaptureRenderedFrame()?.Save(Path.Combine(work, name + ".png")); }
 vm.Open(first); Pump();
@@ -91,22 +91,56 @@ Check("trocar o método muda a chance", hunt.OddsText == "1/1365.8" || hunt.Odds
 for (int i = 0; i < 300 && hunt.IsLoadingLocations; i++) { Pump(2); System.Threading.Thread.Sleep(10); }
 Check("ficha do alvo carregada", hunt.HasLocations && !hunt.AnyShinyLock);
 Shot("shinyhunt");
-var saved = ShinyHuntStore.Load();
-Check("caçada gravada", saved is { Species: 504, Count: 12, Method: "masuda" } && saved.KnownShinies.Count == 1);
+var saved = ShinyHuntStore.Load().Current;
+Check("caçada gravada", saved is { Species: 504, Count: 12, Method: "masuda", KnowsAllShinies: true } && saved.KnownShinies.Count == 1);
 
-// Outro arquivo do mesmo jogo com um Patrat shiny novo: o "Achei!" pergunta e conclui
-var found = Make(bw, 504); found.SetShiny(); bw.SetBoxSlotAtIndex(found, 0, 1);
+// Fase registrada à mão (com a espécie), sem zerar a caçada
+hunt.PhaseSpeciesName = "Lillipup"; hunt.LogPhaseCommand.Execute(null);
+for (int i = 0; i < 5; i++) hunt.CountKey(true);
+Check("fase à mão no encontro atual", hunt.HasPhases && hunt.Phases[0].Title.Contains("12") && hunt.Phases[0].SpeciesName == "Lillipup" && hunt.PhaseText.Contains("5") && hunt.Count == 17);
+
+// Outro arquivo do mesmo jogo com um Purrloin shiny e um Patrat shiny novos: o primeiro vira fase, o segundo conclui
+var other = Make(bw, 509); other.SetShiny(); bw.SetBoxSlotAtIndex(other, 0, 1);
+var found = Make(bw, 504); found.SetShiny(); bw.SetBoxSlotAtIndex(found, 0, 2);
 var second = Path.Combine(lib, "Black2nd.sav"); File.WriteAllBytes(second, bw.Write().ToArray());
 Run(() => vm.OpenAsync(second));
-Check("Achei!: só o shiny novo, e conclui", lastDialog?.Message.Contains("Patrat") == true && hunt.IsFinished && hunt.FoundText.Contains("12"));
-Check("concluída: contador parado", !hunt.AddOneCommand.CanExecute(null));
+Check("Achei!: outro shiny vira fase e o alvo conclui", hunt.Phases.Count == 2 && hunt.Phases[0].SpeciesName == "Purrloin" && hunt.Phases[0].HasWhere
+    && hunt.IsFinished && hunt.FoundText.Contains("17") && lastDialog?.Message.Contains("Patrat") == true);
+Check("concluída: contador parado", !hunt.AddOneCommand.CanExecute(null) && !hunt.LogPhaseCommand.CanExecute(null));
+Check("troféu guardado", hunt.HasTrophies && hunt.Trophies[0].Title == "Patrat" && hunt.Trophies[0].Summary.Contains("17") && hunt.Trophies[0].Summary.Contains("2"));
+vm.CurrentPage = hunt; Pump(10);
+Check("outro save do mesmo jogo: o método continua escolhido", hunt.SelectedMethod?.Key == "masuda" && hunt.OddsText.StartsWith("1/1365"));
+Shot("shinyhunt_trophy");
+{
+    var pageScroll = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(win).OfType<Avalonia.Controls.ScrollViewer>()
+        .Where(x => x.DataContext is ShinyHuntPageViewModel).OrderByDescending(x => x.Extent.Height).First();
+    pageScroll.Offset = new Vector(0, 5000); Shot("shinyhunt_bottom");
+}
+hunt.Trophies[0].GoCommand.Execute(null); Pump(30);
+Check("troféu: Ir abre o Pokémon no save", vm.Editor?.SpeciesName == "Patrat");
+var csv = System.Text.Encoding.UTF8.GetString(ShinyHuntCsv.Encode(ShinyHuntStore.Load()));
+Check("CSV com troféu e fases", csv.Contains("Troféu,Patrat,Patrat,") && csv.Contains("Fase,Purrloin,Patrat,") && csv.Contains("Fase,Lillipup,Patrat,") && csv.Contains(",17,2,"));
 lastDialog = null; Run(() => vm.OpenAsync(first));
 Check("não pergunta de novo", lastDialog is null);
 
-// A página guarda a caçada entre execuções
-var reloaded = new ShinyHuntPageViewModel(_ => { }); reloaded.Load(bw);
-Check("caçada volta ao abrir o app", reloaded.HasHunt && reloaded.IsFinished && reloaded.Count == 12);
+// A página guarda as caçadas entre execuções
+var reloaded = new ShinyHuntPageViewModel(_ => { }) { Confirm = (_, _, _) => Task.FromResult(true) }; reloaded.Load(bw);
+Check("caçada e troféus voltam ao abrir o app", reloaded.HasHunt && reloaded.IsFinished && reloaded.Count == 17 && reloaded.HasTrophies);
 reloaded.NewHuntCommand.Execute(null);
-Check("nova caçada limpa", !reloaded.HasHunt && ShinyHuntStore.Load() is null);
+Check("nova caçada: os troféus ficam", !reloaded.HasHunt && reloaded.HasTrophies && ShinyHuntStore.Load().Trophies.Count == 1);
+reloaded.Trophies[0].RemoveCommand.Execute(null);
+Check("remover troféu (pergunta antes)", !reloaded.HasTrophies && ShinyHuntStore.Load() is { Current: null, Trophies.Count: 0 });
+
+// Nova caçada com encontros e sem shiny: pergunta; recusando, nada muda
+var careful = new ShinyHuntPageViewModel(_ => { }) { Confirm = (_, _, _) => Task.FromResult(false) }; careful.Load(bw);
+careful.TargetName = "Purrloin"; careful.CountKey(true); careful.CountKey(true);
+careful.NewHuntCommand.Execute(null);
+Check("nova caçada pergunta antes de apagar encontros", careful.HasHunt && careful.Count == 2);
+
+// Arquivo da etapa 1 (só a caçada, sem troféus) continua abrindo
+File.WriteAllText(Path.Combine(ShinyHuntStore.Folder, "shiny-hunt.json"), """{"Species":25,"Version":20,"Method":"full","Count":40}""");
+File.Delete(Path.Combine(ShinyHuntStore.Folder, "shiny-hunt.json.bak"));
+var legacy = ShinyHuntStore.Load();
+Check("arquivo antigo vira a caçada atual", legacy.Current is { Species: 25, Count: 40, KnowsAllShinies: false } && legacy.Trophies.Count == 0);
 
 Console.WriteLine(fails == 0 ? "TUDO OK" : $"{fails} FALHAS"); return fails == 0 ? 0 : 1;

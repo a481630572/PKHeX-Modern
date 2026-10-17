@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -7,7 +8,19 @@ using PKHeX.Core;
 
 namespace PKHeX.Modern.Services;
 
-/// <summary>Uma caçada shiny: alvo, jogo, método, contador e tempo. Guardada em JSON (<see cref="ShinyHuntStore"/>).</summary>
+/// <summary>Uma fase: um shiny que não era o alvo, registrado sem zerar a caçada.</summary>
+public sealed class HuntPhase
+{
+    /// <summary>Contador da caçada quando o shiny apareceu.</summary>
+    public long At { get; set; }
+    public DateTime When { get; set; } = DateTime.Now;
+    /// <summary>Espécie do shiny (0 = ainda não identificada).</summary>
+    public ushort Species { get; set; }
+    /// <summary>Onde está no save, quando veio do "Achei!".</summary>
+    public string Where { get; set; } = "";
+}
+
+/// <summary>Uma caçada shiny: alvo, jogo, método, contador, tempo e fases. Guardada em JSON (<see cref="ShinyHuntStore"/>).</summary>
 public sealed class ShinyHunt
 {
     public ushort Species { get; set; }
@@ -15,6 +28,8 @@ public sealed class ShinyHunt
     /// <summary>Jogo da caçada (<see cref="GameVersion"/> do save em que ela começou).</summary>
     public int Version { get; set; }
     public string Method { get; set; } = "full";
+    /// <summary>Nome do método quando a caçada terminou (para os troféus e o CSV).</summary>
+    public string MethodName { get; set; } = "";
     public int Param1 { get; set; }
     public int Param2 { get; set; }
     public bool Charm { get; set; }
@@ -23,12 +38,19 @@ public sealed class ShinyHunt
     /// <summary>Tempo caçando: soma dos intervalos entre contagens (pausas de mais de 10 minutos não contam).</summary>
     public double Seconds { get; set; }
     public DateTime? LastCount { get; set; }
-    /// <summary>Shiny da família do alvo que já estavam no save (o "Achei!" só avisa dos novos).</summary>
+    /// <summary>Shiny que já estavam no save (o "Achei!" só avisa dos novos).</summary>
     public List<string> KnownShinies { get; set; } = [];
+    /// <summary>A lista acima tem os shiny de todas as espécies (as caçadas da etapa 1 guardavam só os da família do alvo).</summary>
+    public bool KnowsAllShinies { get; set; }
+    public List<HuntPhase> Phases { get; set; } = [];
     public DateTime? FoundAt { get; set; }
     public string FoundWhere { get; set; } = "";
+    /// <summary>Identidade do Pokémon achado no save (<see cref="ShinyHuntInfo.KeyOf"/>), para o "Ir" dos troféus.</summary>
+    public string FoundKey { get; set; } = "";
 
     public bool IsFinished => FoundAt is not null;
+    /// <summary>Encontros desde o último shiny (fase atual).</summary>
+    public long PhaseCount => Count - (Phases.Count > 0 ? Phases[^1].At : 0);
 
     /// <summary>Pausa máxima entre duas contagens que ainda conta como tempo caçando.</summary>
     public static readonly TimeSpan MaxGap = TimeSpan.FromMinutes(10);
@@ -40,9 +62,19 @@ public sealed class ShinyHunt
         LastCount = now;
         Count = Math.Max(0, Count + step);
     }
+
+    /// <summary>Cópia independente (para guardar nos troféus).</summary>
+    public ShinyHunt Copy() => JsonSerializer.Deserialize<ShinyHunt>(JsonSerializer.Serialize(this))!;
 }
 
-/// <summary>Grava a caçada atual em %APPDATA%\PKHeX.Modern\shiny-hunt.json (com cópia .bak e troca atômica).</summary>
+/// <summary>Tudo o que a página guarda: a caçada atual e as concluídas (troféus).</summary>
+public sealed class ShinyHuntData
+{
+    public ShinyHunt? Current { get; set; }
+    public List<ShinyHunt> Trophies { get; set; } = [];
+}
+
+/// <summary>Grava as caçadas em shiny-hunt.json, na pasta dos backups (com cópia .bak e troca atômica).</summary>
 public static class ShinyHuntStore
 {
     private static string? _folder;
@@ -54,45 +86,82 @@ public static class ShinyHuntStore
     }
     private static string FilePath => Path.Combine(Folder, "shiny-hunt.json");
 
-    public static ShinyHunt? Load()
+    public static ShinyHuntData Load()
     {
         foreach (var path in new[] { FilePath, FilePath + ".bak" })
         {
             try
             {
-                if (File.Exists(path) && JsonSerializer.Deserialize<ShinyHunt>(File.ReadAllText(path)) is { Species: > 0 } hunt)
-                    return hunt;
+                if (!File.Exists(path))
+                    continue;
+                using var doc = JsonDocument.Parse(File.ReadAllText(path));
+                // A etapa 1 gravava só a caçada (com "Species" na raiz); agora vêm a caçada atual e os troféus
+                if (doc.RootElement.TryGetProperty("Species", out _))
+                    return new ShinyHuntData { Current = doc.RootElement.Deserialize<ShinyHunt>() is { Species: > 0 } legacy ? legacy : null };
+                if (doc.RootElement.Deserialize<ShinyHuntData>() is { } data)
+                    return data;
             }
             catch
             {
-                // arquivo corrompido: tenta a copia
+                // arquivo corrompido: tenta a cópia
             }
         }
-        return null;
+        return new ShinyHuntData();
     }
 
-    public static void Save(ShinyHunt? hunt)
+    public static void Save(ShinyHuntData data)
     {
         try
         {
             Directory.CreateDirectory(Folder);
-            if (hunt is null)
+            if (data.Current is null && data.Trophies.Count == 0)
             {
                 File.Delete(FilePath);
                 File.Delete(FilePath + ".bak"); // senão o Load traria a caçada apagada de volta
                 return;
             }
             var tmp = FilePath + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(hunt, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(tmp, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
             if (File.Exists(FilePath))
                 File.Copy(FilePath, FilePath + ".bak", true);
             File.Move(tmp, FilePath, true);
         }
         catch
         {
-            // a caçada continua na memória; grava na próxima contagem
+            // as caçadas continuam na memória; grava na próxima mudança
         }
     }
+}
+
+/// <summary>CSV das caçadas (troféus, a atual e as fases), para planilha.</summary>
+public static class ShinyHuntCsv
+{
+    private static readonly string[] Headers = ["Tipo", "Espécie", "Caçada", "Jogo", "Método", "Encontros", "Fases", "Começou", "Fim", "Onde", "Horas"];
+
+    public static byte[] Encode(ShinyHuntData data)
+    {
+        var text = new System.Text.StringBuilder();
+        Line(Headers.Select(Loc.T));
+        var hunts = data.Trophies.Select(t => (Hunt: t, Kind: "Troféu")).ToList();
+        if (data.Current is { IsFinished: false } current)
+            hunts.Add((current, "Em andamento"));
+        foreach (var (h, kind) in hunts)
+        {
+            var target = Name(h.Species);
+            Line([Loc.T(kind), target, target, Game(h.Version), h.MethodName.Length > 0 ? Loc.T(h.MethodName) : h.Method, N(h.Count), N(h.Phases.Count),
+                Date(h.Started), h.FoundAt is { } f ? Date(f) : "", h.FoundWhere, (h.Seconds / 3600).ToString("0.0", CultureInfo.InvariantCulture)]);
+            foreach (var p in h.Phases)
+                Line([Loc.T("Fase"), p.Species > 0 ? Name(p.Species) : Loc.T("a identificar"), target, Game(h.Version), "", N(p.At), "", "", Date(p.When), p.Where, ""]);
+        }
+        var encoding = new System.Text.UTF8Encoding(true);
+        return [.. encoding.GetPreamble(), .. encoding.GetBytes(text.ToString())];
+        void Line(IEnumerable<string> cells) => text.AppendJoin(',', cells.Select(BoxReport.Escape)).Append("\r\n");
+    }
+
+    private static string Name(ushort species) => species < CoreAdapter.SpeciesNames.Count ? CoreAdapter.SpeciesNames[species] : $"#{species}";
+    private static string Game(int version) => EncounterDatabase.GetVersionName((GameVersion)version);
+    private static string N(long value) => value.ToString(CultureInfo.InvariantCulture);
+    private static string Date(DateTime d) => d.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 }
 
 /// <summary>Um local onde o alvo aparece no jogo, com níveis, shiny lock e golpes que podem estragar a caçada.</summary>
@@ -202,6 +271,20 @@ public static class ShinyHuntInfo
             for (int s = 0; s < sav.BoxSlotCount; s++)
                 if (sav.GetBoxSlotAtIndex(b, s) is { } pk && Match(pk))
                     yield return (pk, $"{CoreAdapter.GetBoxName(sav, b)} · {s + 1}");
+    }
+
+    /// <summary>Todos os shiny guardados no save (caixas e equipe), com onde estão e a caixa/posição (caixa -1 = equipe).</summary>
+    public static IEnumerable<(PKM Pk, string Where, int Box, int Slot)> AllShinies(SaveFile sav)
+    {
+        static bool IsShiny(PKM pk) => !CoreAdapter.IsEmpty(pk) && !pk.IsEgg && pk.IsShiny;
+        if (sav.HasParty)
+            for (int i = 0; i < sav.PartyCount; i++)
+                if (sav.GetPartySlotAtIndex(i) is { } pk && IsShiny(pk))
+                    yield return (pk, $"Equipe · {i + 1}", -1, i);
+        for (int b = 0; b < sav.BoxCount; b++)
+            for (int s = 0; s < sav.BoxSlotCount; s++)
+                if (sav.GetBoxSlotAtIndex(b, s) is { } pk && IsShiny(pk))
+                    yield return (pk, $"{CoreAdapter.GetBoxName(sav, b)} · {s + 1}", b, s);
     }
 
     /// <summary>Local e data de captura gravados no Pokémon (para o "Achei!").</summary>

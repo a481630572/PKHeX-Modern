@@ -201,7 +201,7 @@ public sealed class ShinyHuntPageViewModel : PageViewModel
     public double Probability => SelectedMethod is { } m ? m.Probability(Param1, Param2, Charm && CanUseCharm) : 0;
     public string OddsText => ShinyOdds.OneIn(Probability);
     public double ChanceNow => ShinyOdds.ChanceBy(Probability, Count);
-    public string ChanceText => string.Format(Loc.T("{0:P1} de chance de já ter achado"), ChanceNow);
+    public string ChanceText => string.Format(Loc.T("{0:0.0%} de chance de já ter achado"), ChanceNow);
     public string OverOddsText => Probability <= 0 ? "" : string.Format(Loc.T("{0:0.00}× as chances"), Count * Probability);
     public string MilestonesText => Probability <= 0 ? "" : string.Format(Loc.T("50%: {0:N0} · 90%: {1:N0} · 99%: {2:N0} encontros"),
         ShinyOdds.EncountersFor(Probability, 0.5), ShinyOdds.EncountersFor(Probability, 0.9), ShinyOdds.EncountersFor(Probability, 0.99));
@@ -215,7 +215,7 @@ public sealed class ShinyHuntPageViewModel : PageViewModel
             {
                 var n = ShinyOdds.EncountersFor(Probability, target);
                 if (Count < n)
-                    return string.Format(Loc.T("Faltam {0:N0} encontros para {1:P0}"), n - Count, target);
+                    return string.Format(Loc.T("Faltam {0:N0} encontros para {1:0%}"), n - Count, target);
             }
             return "Já passou de 99%: a próxima pode ser a sua.";
         }

@@ -26,8 +26,9 @@ class Packages(unittest.TestCase):
                         self.assertEqual(archive.read(prefix + exe), b"executable fixture")
                         self.assertEqual(archive.read(prefix + "LICENSE.txt"), b"fixture")
                         mode = archive.getinfo(prefix + exe).external_attr >> 16
-                        self.assertTrue(stat.S_ISREG(mode))
-                        self.assertEqual(mode & 0o777, 0o644 if rid == "win-x64" else 0o755)
+                        if mode:  # o zip do ditto (macOS) pode gravar o modo de outro jeito; a assinatura e conferida a parte
+                            self.assertTrue(stat.S_ISREG(mode))
+                            self.assertEqual(mode & 0o777, 0o644 if rid == "win-x64" else 0o755)
                         if rid.startswith("osx-"):
                             metadata = plistlib.loads(archive.read(f"{BUNDLE}/Contents/Info.plist"))
                             self.assertEqual(metadata["CFBundleExecutable"], exe)
@@ -40,8 +41,10 @@ class Packages(unittest.TestCase):
         calls = []
         def fake_run(args, **kwargs):
             calls.append(args)
-            if args[0] == "ditto":
+            if args[:2] == ["ditto", "-x"]:
                 Path(args[-1], BUNDLE).mkdir(parents=True)
+            elif args[:2] == ["ditto", "-c"]:
+                Path(args[-1]).write_bytes(b"zip")
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             published = root / "osx-arm64"; published.mkdir()
@@ -49,7 +52,8 @@ class Packages(unittest.TestCase):
             with patch("package_modern.make_icon", return_value=False),                  patch("package_modern.shutil.which", return_value="/usr/bin/tool"),                  patch("package_modern.subprocess.run", side_effect=fake_run):
                 package("osx-arm64", published, root / "output", "0.4.5", root / "icon.png")
         self.assertTrue(any(c[:4] == ["codesign", "--force", "--deep", "--sign"] and c[4] == "-" and c[-1].endswith(BUNDLE) for c in calls))
-        self.assertTrue(any(c[0] == "ditto" for c in calls))
+        self.assertTrue(any(c[:2] == ["ditto", "-c"] and "--keepParent" in c for c in calls))
+        self.assertTrue(any(c[:2] == ["ditto", "-x"] for c in calls))
         self.assertTrue(sum(1 for c in calls if c[:2] == ["codesign", "--verify"]) == 2)
 
     def test_missing_executable(self):

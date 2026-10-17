@@ -94,6 +94,14 @@ def package(rid: str, published: Path, output: Path, version: str, icon: Path | 
         else:
             root = published
             files = sorted(published.rglob("*"))
+        if rid.startswith("osx-") and signed and shutil.which("ditto"):
+            # No Mac, o zip sai do ditto (como a Apple recomenda para apps assinados): ele preserva permissoes e os
+            # atributos estendidos, onde o codesign guarda a assinatura de arquivos que nao sao Mach-O.
+            destination.unlink(missing_ok=True)
+            subprocess.run(["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", str(bundle), str(destination)], check=True)
+            verify_zip(destination, work)
+            print(f"Pacote: {destination} ({destination.stat().st_size} bytes)")
+            return destination
         with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for source in files:
                 if not source.is_file():
@@ -108,8 +116,6 @@ def package(rid: str, published: Path, output: Path, version: str, icon: Path | 
                 entry.compress_type = zipfile.ZIP_DEFLATED
                 with source.open("rb") as handle, archive.open(entry, "w") as target:
                     shutil.copyfileobj(handle, target)
-        if rid.startswith("osx-") and signed:
-            verify_zip(destination, work)
     print(f"Pacote: {destination} ({destination.stat().st_size} bytes)")
     return destination
 

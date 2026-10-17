@@ -82,6 +82,18 @@ vm.UndoCommand.Execute(null); Pump();
 vm.Boxes.ToggleLockCommand.Execute(null); Pump();
 Check("destravada", !vm.Boxes.IsLocked && !BoxLocks.IsLocked(sav, 0));
 
+// Memorias (Gen 6/7): as listas de sentimento e de detalhe nao podem ser recriadas a cada leitura. Recriadas, a
+// ComboBox devolvia outro valor a cada atualizacao do editor e a interface congelava num laco (Alpha Sapphire).
+var orPath = Path.Combine(work, "or.sav");
+if (File.Exists(orPath))
+{
+    var t2 = vm.OpenAsync(orPath); Wait(() => t2.IsCompleted);
+    vm.CurrentPage = vm.Party; Pump();
+    var t3 = vm.SelectSlotAsync(vm.Party.Slots.First(x => !x.IsEmpty)); Wait(() => t3.IsCompleted);
+    var mem = vm.Editor!.OTMemory;
+    Check("memórias: listas estáveis entre leituras", mem is not null && ReferenceEquals(mem.Feelings, mem.Feelings) && ReferenceEquals(mem.Arguments, mem.Arguments)
+        && ReferenceEquals(vm.Editor.HTMemory?.Feelings, vm.Editor.HTMemory?.Feelings));
+}
 win.Close();
 Console.WriteLine(fails == 0 ? "TUDO OK" : $"{fails} FALHA(S)");
 return fails == 0 ? 0 : 1;

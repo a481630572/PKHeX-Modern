@@ -71,8 +71,8 @@ public sealed class RaidRegionViewModel : ViewModelBase
         Name = name; _edit = edit; _status = status;
         Rows = Enumerable.Range(0, list.CountAll).Select(i => new RaidRowViewModel(i, list.GetRaid(i), edit, status)).ToArray();
     }
-    public string CurrentSeed { get => _list9?.CurrentSeed.ToString("X16") ?? ""; set { if (HasSeeds && RaidRowViewModel.Hex(value, ulong.MaxValue, _status, out var n)) { _edit("Seed atual de " + Name, () => _list9!.CurrentSeed = n); Raise(); } } }
-    public string TomorrowSeed { get => _list9?.TomorrowSeed.ToString("X16") ?? ""; set { if (HasSeeds && RaidRowViewModel.Hex(value, ulong.MaxValue, _status, out var n)) { _edit("Seed de amanhã de " + Name, () => _list9!.TomorrowSeed = n); Raise(); } } }
+    public string CurrentSeed { get => _list9?.CurrentSeed.ToString("X16") ?? ""; set { if (HasSeeds && RaidRowViewModel.Hex(value, ulong.MaxValue, _status, out var n) && n != _list9!.CurrentSeed) { _edit("Seed atual de " + Name, () => _list9!.CurrentSeed = n); Raise(); } } }
+    public string TomorrowSeed { get => _list9?.TomorrowSeed.ToString("X16") ?? ""; set { if (HasSeeds && RaidRowViewModel.Hex(value, ulong.MaxValue, _status, out var n) && n != _list9!.TomorrowSeed) { _edit("Seed de amanhã de " + Name, () => _list9!.TomorrowSeed = n); Raise(); } } }
     public void SetAll(bool active)
     {
         foreach (var row in Rows)
@@ -112,18 +112,23 @@ public sealed class RaidRowViewModel : ViewModelBase
             Change(() => { if (_raid8 is { } r) { if (value) r.Activate((byte)Math.Clamp(r.Stars, (byte)0, (byte)4), (byte)Math.Clamp(r.RandRoll, (byte)1, (byte)100)); else r.Deactivate(); } if (_raid9 is { } t) t.IsEnabled = value; });
         }
     }
-    public IReadOnlyList<string> Types => IsSwsh ? ["Inativa", "Normal", "Rara", "Normal (Wishing Piece)", "Rara (Wishing Piece)", "Evento", "Dynamax Crystal"] : ["Normal (1–5 estrelas)", "Cristal preto (6 estrelas)", "Evento", "Evento (7 estrelas)"];
-    public int TypeIndex { get => _raid8 is { } r ? (int)r.DenType : (int)(_raid9?.Content ?? 0); set { if (value < 0 || value >= Types.Count) return; Change(() => { if (_raid8 is { } r) r.DenType = (RaidType)value; if (_raid9 is { } t) t.Content = (TeraRaidContentType)value; }); } }
-    public int Stars { get => (_raid8?.Stars ?? 0) + 1; set { if (_raid8 is { } r && value is >= 1 and <= 5) Change(() => r.Stars = (byte)(value - 1)); } }
-    public int Roll { get => _raid8?.RandRoll ?? 0; set { if (_raid8 is { } r && value is >= 1 and <= 100) Change(() => r.RandRoll = (byte)value); } }
-    public string Seed { get => _raid8?.Seed.ToString("X16") ?? _raid9?.Seed.ToString("X8") ?? ""; set { if (Hex(value, IsSv ? uint.MaxValue : ulong.MaxValue, _status, out var n)) Change(() => { if (_raid8 is { } r) r.Seed = n; if (_raid9 is { } t) t.Seed = (uint)n; }); } }
-    public string Hash { get => _raid8?.Hash.ToString("X16") ?? ""; set { if (_raid8 is { } r && Hex(value, ulong.MaxValue, _status, out var n)) Change(() => r.Hash = n); } }
-    public bool Watts { get => _raid8?.WattsHarvested == true; set { if (_raid8 is { } r) Change(() => r.WattsHarvested = value); } }
-    public bool Event { get => _raid8?.IsEvent == true; set { if (_raid8 is { } r) Change(() => r.IsEvent = value); } }
-    public bool LeaguePoints { get => _raid9?.IsClaimedLeaguePoints == true; set { if (_raid9 is { } r) Change(() => r.IsClaimedLeaguePoints = value); } }
-    public uint Identifier { get => _seven?.Identifier ?? 0; set { if (_seven is { } r) Change(() => r.Identifier = value); } }
-    public bool Captured { get => _seven?.Captured == true; set { if (_seven is { } r) Change(() => r.Captured = value); } }
-    public bool Defeated { get => _seven?.Defeated == true; set { if (_seven is { } r) Change(() => r.Defeated = value); } }
+    // Listas fixas: uma lista nova a cada leitura fazia a ComboBox reconfigurar e devolver o indice, e cada
+    // devolucao virava outra alteracao (Raise de tudo → lista nova → ...) ate estourar a pilha e fechar o app.
+    private static readonly string[] SwshTypes = ["Inativa", "Normal", "Rara", "Normal (Wishing Piece)", "Rara (Wishing Piece)", "Evento", "Dynamax Crystal"];
+    private static readonly string[] SvTypes = ["Normal (1–5 estrelas)", "Cristal preto (6 estrelas)", "Evento", "Evento (7 estrelas)"];
+    public IReadOnlyList<string> Types => IsSwsh ? SwshTypes : SvTypes;
+    // Todo campo ignora o valor que ja esta la: a tela relida devolve o mesmo valor, que nao pode virar outra alteracao.
+    public int TypeIndex { get => _raid8 is { } r ? (int)r.DenType : (int)(_raid9?.Content ?? 0); set { if (value < 0 || value >= Types.Count || value == TypeIndex) return; Change(() => { if (_raid8 is { } r) r.DenType = (RaidType)value; if (_raid9 is { } t) t.Content = (TeraRaidContentType)value; }); } }
+    public int Stars { get => (_raid8?.Stars ?? 0) + 1; set { if (_raid8 is { } r && value is >= 1 and <= 5 && value != Stars) Change(() => r.Stars = (byte)(value - 1)); } }
+    public int Roll { get => _raid8?.RandRoll ?? 0; set { if (_raid8 is { } r && value is >= 1 and <= 100 && value != Roll) Change(() => r.RandRoll = (byte)value); } }
+    public string Seed { get => _raid8?.Seed.ToString("X16") ?? _raid9?.Seed.ToString("X8") ?? ""; set { if (Hex(value, IsSv ? uint.MaxValue : ulong.MaxValue, _status, out var n) && n != (_raid8?.Seed ?? _raid9?.Seed ?? 0)) Change(() => { if (_raid8 is { } r) r.Seed = n; if (_raid9 is { } t) t.Seed = (uint)n; }); } }
+    public string Hash { get => _raid8?.Hash.ToString("X16") ?? ""; set { if (_raid8 is { } r && Hex(value, ulong.MaxValue, _status, out var n) && n != r.Hash) Change(() => r.Hash = n); } }
+    public bool Watts { get => _raid8?.WattsHarvested == true; set { if (_raid8 is { } r && value != Watts) Change(() => r.WattsHarvested = value); } }
+    public bool Event { get => _raid8?.IsEvent == true; set { if (_raid8 is { } r && value != Event) Change(() => r.IsEvent = value); } }
+    public bool LeaguePoints { get => _raid9?.IsClaimedLeaguePoints == true; set { if (_raid9 is { } r && value != LeaguePoints) Change(() => r.IsClaimedLeaguePoints = value); } }
+    public uint Identifier { get => _seven?.Identifier ?? 0; set { if (_seven is { } r && value != Identifier) Change(() => r.Identifier = value); } }
+    public bool Captured { get => _seven?.Captured == true; set { if (_seven is { } r && value != Captured) Change(() => r.Captured = value); } }
+    public bool Defeated { get => _seven?.Defeated == true; set { if (_seven is { } r && value != Defeated) Change(() => r.Defeated = value); } }
     private void Change(Action action) { _edit($"Raid #{Index + 1}", action); Raise(string.Empty); }
     internal static bool Hex(string text, ulong max, Action<string> status, out ulong value)
     {

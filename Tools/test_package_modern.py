@@ -36,6 +36,22 @@ class Packages(unittest.TestCase):
                             self.assertEqual(metadata["LSMinimumSystemVersion"], "14.0")
                             self.assertNotIn("CFBundleIconFile", metadata)
 
+    def test_macos_bundle_signed_when_codesign_exists(self):
+        calls = []
+        def fake_run(args, **kwargs):
+            calls.append(args)
+            if args[0] == "ditto":
+                Path(args[-1], BUNDLE).mkdir(parents=True)
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            published = root / "osx-arm64"; published.mkdir()
+            (published / "PKHeX.Modern").write_bytes(b"executable fixture")
+            with patch("package_modern.make_icon", return_value=False),                  patch("package_modern.shutil.which", return_value="/usr/bin/tool"),                  patch("package_modern.subprocess.run", side_effect=fake_run):
+                package("osx-arm64", published, root / "output", "0.4.5", root / "icon.png")
+        self.assertTrue(any(c[:4] == ["codesign", "--force", "--deep", "--sign"] and c[4] == "-" and c[-1].endswith(BUNDLE) for c in calls))
+        self.assertTrue(any(c[0] == "ditto" for c in calls))
+        self.assertTrue(sum(1 for c in calls if c[:2] == ["codesign", "--verify"]) == 2)
+
     def test_missing_executable(self):
         with tempfile.TemporaryDirectory() as folder:
             with self.assertRaises(FileNotFoundError):

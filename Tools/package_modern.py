@@ -34,6 +34,28 @@ def make_icon(source: Path, destination: Path, work: Path) -> bool:
         return False
 
 
+def sign_bundle(bundle: Path) -> bool:
+    """Assinatura ad-hoc do bundle inteiro (sem conta da Apple). Sem ela, o Gatekeeper dos Macs com chip Apple
+    diz que o app "esta danificado e nao pode ser aberto": o .NET assina so o executavel solto, e o bundle com
+    Info.plist e Resources fica sem assinatura valida. Com ela, o macOS so pede para liberar o app em Ajustes."""
+    if not shutil.which("codesign"):
+        print("codesign indisponivel (fora do macOS): bundle sem assinatura ad-hoc.")
+        return False
+    subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(bundle)], check=True)
+    subprocess.run(["codesign", "--verify", "--deep", "--strict", "--verbose=2", str(bundle)], check=True)
+    return True
+
+
+def verify_zip(archive: Path, work: Path) -> None:
+    """Extrai o zip como o usuario faria (ditto preserva permissoes) e confere a assinatura do bundle."""
+    if not shutil.which("codesign") or not shutil.which("ditto"):
+        return
+    target = work / "verify"
+    subprocess.run(["ditto", "-x", "-k", str(archive), str(target)], check=True)
+    subprocess.run(["codesign", "--verify", "--deep", "--strict", "--verbose=2", str(target / BUNDLE)], check=True)
+    print("Assinatura ad-hoc conferida no zip extraido.")
+
+
 def package(rid: str, published: Path, output: Path, version: str, icon: Path | None = None) -> Path:
     if rid not in RIDS:
         raise ValueError(f"RID nao suportado: {rid}")
@@ -65,6 +87,8 @@ def package(rid: str, published: Path, output: Path, version: str, icon: Path | 
                 metadata["CFBundleIconFile"] = "Modern.icns"
             with (contents / "Info.plist").open("wb") as handle:
                 plistlib.dump(metadata, handle)
+            (contents / "MacOS" / executable).chmod(0o755)
+            signed = sign_bundle(bundle)
             root = work
             files = sorted(bundle.rglob("*"))
         else:
@@ -77,11 +101,15 @@ def package(rid: str, published: Path, output: Path, version: str, icon: Path | 
                 relative = source.relative_to(root).as_posix()
                 entry = zipfile.ZipInfo.from_file(source, relative)
                 entry.create_system = 3
+                # Executaveis Mach-O dentro do bundle (o app e bibliotecas nativas) precisam de +x; a assinatura
+                # nao depende do modo, mas o macOS so abre o executavel principal se ele for executavel.
                 mode = 0o755 if source.name == executable and rid != "win-x64" else 0o644
                 entry.external_attr = (stat.S_IFREG | mode) << 16
                 entry.compress_type = zipfile.ZIP_DEFLATED
                 with source.open("rb") as handle, archive.open(entry, "w") as target:
                     shutil.copyfileobj(handle, target)
+        if rid.startswith("osx-") and signed:
+            verify_zip(destination, work)
     print(f"Pacote: {destination} ({destination.stat().st_size} bytes)")
     return destination
 

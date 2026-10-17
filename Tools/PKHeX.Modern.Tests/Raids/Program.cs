@@ -1,3 +1,4 @@
+using Avalonia.VisualTree;
 using System;
 using System.IO;
 using System.Linq;
@@ -82,5 +83,34 @@ foreach (var version in new[] { GameVersion.SH, GameVersion.SL })
     var win = new Window { Content = new ContentControl { Content = page, Margin = new Thickness(16) }, Width = 948, Height = 620 }; win.Show();
     for (int i = 0; i < 15; i++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); }
     win.CaptureRenderedFrame()!.Save(Path.Combine(work, "raids-" + version + ".png")); win.Close();
+}
+// Edicao pela tela (bindings reais): desmarcar "Raid ativa" de uma raid de evento estourava a pilha e fechava o app
+// (lista de tipos recriada a cada leitura + TypeIndex sem conferir valor igual = laco infinito).
+foreach (var file in new[] { "sh.sav", "sv.sav" })
+{
+    var path = Path.Combine(work, file); if (!File.Exists(path)) continue;
+    var vm = new MainViewModel(new AppSettings { CheckForUpdates = false });
+    var win = new MainWindow { DataContext = vm, Width = 1600, Height = 1000 }; win.Show();
+    void Pump() { for (int i = 0; i < 6; i++) { Dispatcher.UIThread.RunJobs(); AvaloniaHeadlessPlatform.ForceRenderTimerTick(); } }
+    vm.Open(path); Pump();
+    var game = vm.Pages.OfType<GamePageViewModel>().First(); vm.CurrentPage = game; game.Tab = 6; Pump();
+    System.Collections.Generic.List<Control> Fields() => win.GetVisualDescendants().OfType<Control>()
+        .Where(c => c.DataContext is RaidRowViewModel && c.FindAncestorOfType<ListBox>() is null && c.IsEffectivelyVisible).ToList();
+    int edits = 0;
+    foreach (var region in game.RaidRegions.Where(r => r.CanActivate))
+    {
+        game.RaidRegion = region; Pump();
+        foreach (var row in region.Rows.Take(40).Where(r => r.Active).Take(2).Concat(region.Rows.Where(r => !r.Active).Take(1)))
+        {
+            game.SelectedRaid = row; Pump();
+            var check = Fields().OfType<CheckBox>().First(c => (c.Content as string) == "Raid ativa");
+            check.IsChecked = !(check.IsChecked ?? false); Pump();
+            if (Fields().OfType<ComboBox>().FirstOrDefault() is { } combo) { combo.SelectedIndex = 2; Pump(); }
+            if (Fields().OfType<NumericUpDown>().FirstOrDefault() is { } stars) { stars.Value = 3; Pump(); }
+            edits++;
+        }
+    }
+    Check(file + " editar raids pela tela não trava", edits > 0);
+    win.Close();
 }
 Console.WriteLine("Captura: " + work); Console.WriteLine(fails == 0 ? "TUDO OK" : $"{fails} FALHAS"); return fails == 0 ? 0 : 1;

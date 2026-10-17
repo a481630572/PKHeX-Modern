@@ -38,7 +38,7 @@ Este arquivo reúne o que o Claude sabia do projeto e do usuário (antes guardad
 3. Faça o commit, crie a tag `modern-vX.Y.Z` e faça o push do branch e da tag. O workflow `modern-build.yml` gera os 4 zips de desktop na release.
 4. Com o build pronto, publique as notas (a seção da versão no CHANGELOG mais o link "Full Changelog"):
    `gh release edit modern-vX.Y.Z -R carlosmozart/PKHeX-Modern --title "PKHeX Modern X.Y.Z" --notes-file <notas> --latest`
-5. Anexe o APK assinado:
+5. Anexe o APK assinado, **só depois que o build da tag terminar** (o anexo precisa da release criada por ele; na 0.4.28 o APK ficou pronto antes e falhou com "release not found"):
    `gh workflow run modern-android.yml -R carlosmozart/PKHeX-Modern --ref modern-ui -f signed_release=true -f release_tag=modern-vX.Y.Z`
 6. **Confira se a release tem os 5 arquivos:** `PKHeX.Modern-Android.apk` e os zips win-x64, linux-x64, osx-arm64 e osx-x64. Sem o APK, o celular não atualiza: aconteceu na 0.4.14. Desde a 0.4.15, o app oferece a release mais nova que tem o pacote do sistema.
 
@@ -60,7 +60,7 @@ O usuário delega levas de funções ao Codex com enunciados `TAREFA-CODEX-FUNCO
 
 ## Pendências em aberto (17/10/2026)
 
-Última release: **0.4.28**. Nenhuma tarefa pedida ficou pela metade; o que segue são ideias e conferências ainda não feitas.
+Última release: **0.4.29**. Nenhuma tarefa pedida ficou pela metade; o que segue são ideias e conferências ainda não feitas.
 
 - **No celular (testar no aparelho do usuário, tema ORAS + fonte Pokémon GB):** as telas da 0.4.26 e 0.4.27 (Início com status, barra lateral em grupos com ícones, resumo e fábrica de ovos da Pokédex, aba Nuzlocke, cartão e editor do modo Hardcore); também a tela cheia (0.4.18), o toque longo nos botões e o segurar-e-arrastar de slot (0.4.16). Para conferir sem o aparelho, renderize o `MobileShell` em 892×412 (como o `Tools/PKHeX.Modern.Tests/Docs` faz com a captura `android.png`).
 - **Ideias vindas do PKForge** (github.com/sofianeelhor/PKForge, concorrente no Android, analisado em 16/10/2026), em ordem de interesse:
@@ -68,7 +68,9 @@ O usuário delega levas de funções ao Codex com enunciados `TAREFA-CODEX-FUNCO
   2. ~~Auto Legality Mod~~: coberto pelo legalizador de sets próprio (`EncounterDatabase.LegalizeSet`, 0.4.28), sem dependência externa.
   3. **Pequenas:** travar caixa, natureza mantendo o shiny e conjuntos prontos na mochila saíram na 0.4.28; o QR com o set do Showdown ficou de lado (copiar e colar resolve).
   - Fora de escopo: ROM hacks (exigem um fork do Core), o "Poképark" e a segunda tela de portáteis duplos.
-- **"✨ Caçada shiny": etapas 1 e 2 feitas** (17/10/2026, em "Próxima versão", ainda sem release). Etapa 1: contador, chances por método (`Services/ShinyOdds.cs`), ficha do alvo e "Achei!" pelo save. Etapa 2: fases (à mão ou oferecidas pelo "Achei!" quando aparece shiny de outra espécie), troféus com "Ir" para o Pokémon e CSV (`ShinyHuntData` em `shiny-hunt.json`; o arquivo da etapa 1 ainda abre). Ficaram de fora, por falta de valores seguros: Poké Radar do XY/BDSP, DexNav, Ultra Wormholes, Number Battled/Brilliant Aura e os bônus do Z-A; e o som da contagem (o Avalonia não tem áudio pronto). Também fora, de propósito: contador flutuante sobre o jogo, atalhos globais, Stream Deck e receitas de sanduíche.
+- **"✨ Caçada shiny": etapas 1 e 2 feitas** (saíram na 0.4.29). Etapa 1: contador, chances por método (`Services/ShinyOdds.cs`), ficha do alvo e "Achei!" pelo save. Etapa 2: fases (à mão ou oferecidas pelo "Achei!" quando aparece shiny de outra espécie), troféus com "Ir" para o Pokémon e CSV (`ShinyHuntData` em `shiny-hunt.json`; o arquivo da etapa 1 ainda abre). Ficaram de fora, por falta de valores seguros: Poké Radar do XY/BDSP, DexNav, Ultra Wormholes, Number Battled/Brilliant Aura e os bônus do Z-A; e o som da contagem (o Avalonia não tem áudio pronto). Também fora, de propósito: contador flutuante sobre o jogo, atalhos globais, Stream Deck e receitas de sanduíche.
+- **macOS:** a 0.4.29 passou a assinar o bundle (ad-hoc) para tirar o aviso “danificado”. **Falta a confirmação de um usuário com Mac** (um usuário no macOS 26.6.2 reportou o problema). A notarização paga continua adiada.
+- **Save de teste inválido:** `saves/legends Arceus.sav` (345.600 bytes) não é reconhecido pelo Core; trocar por um save real de Legends: Arceus para cobrir o editor desse jogo.
 - **Editores de nicho** (candidatos à 7ª leva do Codex): arranjo das decorações da base secreta, ranks por espécie do Battle Hall e do Battle Castle.
 - **Capturas:** o projeto `Tools/PKHeX.Modern.Tests/Docs` regenera todas as capturas do README e do site (inclusive `android.png`, temas ORAS/Kanto, Nuzlocke, fábrica de ovos e Hardcore): `dotnet run -c Release --project Tools/PKHeX.Modern.Tests/Docs -- PKHeX.Modern/docs`.
 - **Página de divulgação:** `docs/index.html`, publicada pelo GitHub Pages a partir da pasta `/docs` do `modern-ui` (endereço: https://carlosmozart.github.io/PKHeX-Modern/). As imagens vêm de `PKHeX.Modern/docs` pelo raw do GitHub (capturas headless com saves sintéticos, nunca saves reais) e os downloads usam `releases/latest/download/<pacote>`, então a página não precisa mudar a cada release. Ao criar uma função visível, considere uma captura nova e um cartão na página.

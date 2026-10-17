@@ -1446,8 +1446,33 @@ public sealed class MemoryViewModel : ViewModelBase
         .Replace("{3}", "[sentimento]").Replace("{4}", "[intensidade]");
     public IReadOnlyList<ComboItem> Memories { get; }
     public IReadOnlyList<string> Intensities { get; }
-    public IReadOnlyList<string> Feelings => [.. CoreAdapter.MemoryTexts.GetMemoryFeelings(Gen).ToArray()];
-    public IReadOnlyList<ComboItem> Arguments => CoreAdapter.GetMemoryArguments(MemoryId, Gen);
+    // As listas so mudam quando a geracao (ou a memoria) muda. Recriadas a cada leitura, a ComboBox se reconfigurava
+    // a cada atualizacao do editor e as vezes devolvia outro valor; o modo legal desfazia e pedia outra atualizacao,
+    // e a interface congelava num laco sem fim (Pokemon da Gen 6/7 com memorias).
+    private IReadOnlyList<string>? _feelings;
+    private int _feelingsGen = -1;
+    public IReadOnlyList<string> Feelings
+    {
+        get
+        {
+            var gen = Gen;
+            if (_feelings is null || gen != _feelingsGen)
+                (_feelings, _feelingsGen) = ([.. CoreAdapter.MemoryTexts.GetMemoryFeelings(gen).ToArray()], gen);
+            return _feelings;
+        }
+    }
+    private IReadOnlyList<ComboItem>? _arguments;
+    private (byte Memory, int Gen) _argumentsKey = (0, -1);
+    public IReadOnlyList<ComboItem> Arguments
+    {
+        get
+        {
+            var key = (MemoryId, Gen);
+            if (_arguments is null || key != _argumentsKey)
+                (_arguments, _argumentsKey) = (CoreAdapter.GetMemoryArguments(key.MemoryId, key.Gen), key);
+            return _arguments;
+        }
+    }
     public bool HasArgument => Arguments.Count > 1;
     private int Gen => CoreAdapter.GetMemoryGen(_pk(), _ot);
 
@@ -1480,7 +1505,7 @@ public sealed class MemoryViewModel : ViewModelBase
         get => _pk() switch { IMemoryOT o when _ot => o.OriginalTrainerMemoryIntensity, IMemoryHT h when !_ot => h.HandlingTrainerMemoryIntensity, _ => 0 };
         set
         {
-            if (value < 0) return;
+            if (value < 0 || value == Intensity) return;
             if (_ot && _pk() is IMemoryOT o) o.OriginalTrainerMemoryIntensity = (byte)value;
             else if (!_ot && _pk() is IMemoryHT h) h.HandlingTrainerMemoryIntensity = (byte)value;
             Raise(); _changed();
@@ -1492,7 +1517,7 @@ public sealed class MemoryViewModel : ViewModelBase
         get => _pk() switch { IMemoryOT o when _ot => o.OriginalTrainerMemoryFeeling, IMemoryHT h when !_ot => h.HandlingTrainerMemoryFeeling, _ => 0 };
         set
         {
-            if (value < 0) return;
+            if (value < 0 || value == Feeling) return;
             if (_ot && _pk() is IMemoryOT o) o.OriginalTrainerMemoryFeeling = (byte)value;
             else if (!_ot && _pk() is IMemoryHT h) h.HandlingTrainerMemoryFeeling = (byte)value;
             Raise(); _changed();

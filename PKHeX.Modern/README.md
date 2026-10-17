@@ -96,11 +96,21 @@ Aplicativos ou outra pasta gravável pelo seu usuário. O bundle inclui o .NET;
 o mínimo declarado é **macOS 14**, seguindo os sistemas suportados pelo
 [.NET 10](https://learn.microsoft.com/en-us/dotnet/core/install/macos).
 
-O app não tem assinatura Developer ID nem notarização. Na primeira abertura,
-o macOS pode bloquear: tente botão direito no app › Abrir; se essa opção não
-liberar, tente abrir uma vez e use **Ajustes do Sistema › Privacidade e Segurança ›
-Abrir Mesmo Assim** para autorizar este app. A disponibilidade dessa opção depende
-das políticas do computador. Veja as [instruções da Apple](https://support.apple.com/pt-br/102445).
+O app tem só uma assinatura local (ad-hoc), sem Developer ID nem notarização da Apple. Na primeira
+abertura, o macOS bloqueia o app e avisa que não pôde verificar o desenvolvedor. Para liberar:
+
+1. Tente abrir o app uma vez e feche o aviso.
+2. Abra **Ajustes do Sistema › Privacidade e Segurança**, role até o fim e clique em **Abrir Mesmo Assim**
+   ao lado de “PKHeX Modern” (no macOS 15 Sequoia, o atalho “botão direito › Abrir” não libera mais).
+
+Se o aviso disser que o app **“está danificado e não pode ser aberto”** (versões até a 0.4.28, que saíram
+sem a assinatura ad-hoc), tire a marca de quarentena no Terminal e abra de novo:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/PKHeX Modern.app"
+```
+
+A disponibilidade dessas opções depende das políticas do computador. Veja as [instruções da Apple](https://support.apple.com/pt-br/102445).
 
 ### Android
 

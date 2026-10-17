@@ -76,6 +76,8 @@ Mais capturas, a lista completa de funções, como compilar e a arquitetura est�
 
 **PKHeX Modern** is a modern UI for the [PKHeX](https://github.com/kwsch/PKHeX) Pokémon save editor, running on **Windows, Linux, macOS and Android** (the original PKHeX is Windows-only). It is built on top of the unmodified `PKHeX.Core`, so save handling and legality checks are the same as PKHeX. Features include a legal mode, drag and drop between boxes and party, a save manager, a local bank, a combined Pokédex, encounter and event databases, event flag editors, an editable Hall of Fame, Battle Frontier, Pokéathlon and secret base editors, trainer badges, one-click Pokédex completion, a Nuzlocke report, a Hardcore mode (move only, for challenges and RetroAchievements), an egg factory, a shiny hunt counter with real odds per method, game-inspired themes, legal Pokémon from pasted Showdown sets, automatic emulator save detection on Android and automatic updates. The interface is available in Portuguese and English (⚙ › Language). [Download the latest release](https://github.com/carlosmozart/PKHeX-Modern/releases/latest) or visit the [project site](https://carlosmozart.github.io/PKHeX-Modern/).
 
+**macOS:** the app is free and not notarized by Apple. The first time, open it once, then go to **System Settings › Privacy & Security** and click **Open Anyway**. If macOS says the app “is damaged and can't be opened”, run `xattr -dr com.apple.quarantine "/Applications/PKHeX Modern.app"` in Terminal and open it again.
+
 ## Créditos
 
 - **[PKHeX](https://github.com/kwsch/PKHeX)**, de Kaphotics e colaboradores: o `PKHeX.Core`, os sprites e toda a base de regras. O README original do PKHeX está [na raiz do repositório](/README.md).

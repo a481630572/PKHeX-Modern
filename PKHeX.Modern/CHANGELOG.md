@@ -6,13 +6,18 @@ Ao adicionar uma função, anote em "Próxima versão"; na release, troque o tí
 Formato: "## versão — data", "### seção", "- item".
 -->
 
-## Próxima versão
+## 0.4.29 — 2026-10-17
 
 ### ✨ Caçada shiny
 - **Nova página Caçada shiny** (no fim da barra lateral): contador com +1, Espaço ou +, desfazer e somar vários; chance por encontro de cada método do jogo aberto (Masuda, Poké Radar, pesca em corrente, Friend Safari, SOS, Catch Combo, Dynamax Adventure, surtos e sanduíche do SV...), chance de já ter achado, encontros para 50/90/99% com a curva, tempo caçando e ritmo por hora. Cada método mostra a fonte; os de valor duvidoso aparecem como “a conferir”.
 - **Lê o save:** o Shiny Charm vem marcado se estiver na mochila, e ao abrir um save com um shiny novo da espécie da caçada o app oferece concluir, com o local e a data de captura.
 - **Fases e troféus:** “Registrar fase” guarda um shiny que não era o alvo sem zerar a caçada (um shiny novo de outra espécie no save também é oferecido como fase); a caçada concluída vira troféu com jogo, método, encontros, fases, data e “Ir” para o Pokémon no save; “Exportar CSV” salva tudo numa planilha.
 - **Onde encontrar:** locais e níveis do alvo no jogo, aviso de shiny lock e os golpes do selvagem que podem estragar a caçada (Explosion, Self-Destruct, Roar, Whirlwind, Teleport, Perish Song, recuo...), com o que fazer.
+
+### 🐛 Correções
+- **macOS “danificado”:** o app do macOS dizia que estava “danificado e não pode ser aberto”, porque o bundle saía sem assinatura. Agora o pacote é assinado (ad-hoc) e conferido no build; o macOS só pede para liberar o app em Ajustes › Privacidade e Segurança. Quem baixou uma versão anterior pode rodar `xattr -dr com.apple.quarantine "/Applications/PKHeX Modern.app"`.
+- **Raids de Sword/Shield:** editar uma raid (por exemplo, desativar uma raid de evento) travava e fechava o app. A tela e o editor entravam num laço sem fim; agora cada campo ignora o valor que já está lá e a lista de tipos é fixa. O mesmo cuidado vale para as seeds das raids de Scarlet/Violet.
+- **Editor congelando (memórias):** com um Pokémon da Gen 6/7 que tem memórias, o editor podia congelar a interface depois de uma alteração (visto ao trocar o encontro de um Pokémon do Alpha Sapphire). As listas de sentimento e de detalhe da memória eram recriadas a cada atualização e entravam num laço com o modo legal; agora ficam fixas.
 
 ## 0.4.28 — 2026-10-16
 

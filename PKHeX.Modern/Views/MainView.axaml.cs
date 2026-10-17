@@ -229,6 +229,9 @@ public sealed partial class MainView : UserControl
             case Key.E: vm.CyclePage(+1); e.Handled = true; break;
             case Key.Escape: vm.Back(); e.Handled = true; break;
             case Key.Delete when vm.DeleteCommand.CanExecute(null): vm.DeleteCommand.Execute(null); e.Handled = true; break;
+            // Caçada shiny: Espaço ou + conta um encontro, − desfaz
+            case Key.Space or Key.Add or Key.OemPlus when vm.CurrentPage == vm.ShinyHunt: vm.ShinyHunt.CountKey(true); e.Handled = true; break;
+            case Key.Subtract or Key.OemMinus when vm.CurrentPage == vm.ShinyHunt: vm.ShinyHunt.CountKey(false); e.Handled = true; break;
         }
     }
 

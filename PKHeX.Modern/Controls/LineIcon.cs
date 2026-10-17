@@ -44,6 +44,7 @@ public sealed class LineIcon : Avalonia.Controls.Control
         ["🔎"] = "M4 10.5A6.5 6.5 0 1 0 17 10.5A6.5 6.5 0 1 0 4 10.5Z M15.3 15.3L20.5 20.5", // Pesquisa
         ["⚙"] = "M4 7H11 M15 7H20 M13 5V9 M4 17H7 M11 17H20 M9 15V19 M4 12H15 M19 12H20 M17 10V14", // Edicao em lote
         ["❔"] = "M3 12A9 9 0 1 0 21 12A9 9 0 1 0 3 12Z M9.5 9.5A2.5 2.5 0 1 1 13 11.8C12.4 12.1 12 12.6 12 13.3V14 M12 17V17.01", // Ajuda
+        ["✨"] = "M11 3L12.8 9.2L19 11L12.8 12.8L11 19L9.2 12.8L3 11L9.2 9.2Z M19 3V7 M17 5H21", // Caçada shiny
         ["💾"] = "M5 4H16L20 8V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V5A1 1 0 0 1 5 4Z M8 4V9H15V4 M8 20V14H16V20", // Salvar
     };
     private static readonly Dictionary<string, Geometry> Cache = [];

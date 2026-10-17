@@ -17,7 +17,7 @@ AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOp
 var output = Path.GetFullPath(args[0]); Directory.CreateDirectory(output);
 var work = Path.Combine(Path.GetTempPath(), "pkhex-docs-" + Guid.NewGuid()); Directory.CreateDirectory(work);
 var library = Path.Combine(work, "saves"); Directory.CreateDirectory(library);
-BankStorage.Root = Path.Combine(work, "bank"); SaveBackup.Folder = Path.Combine(work, "backups");
+BankStorage.Root = Path.Combine(work, "bank"); SaveBackup.Folder = Path.Combine(work, "backups"); ShinyHuntStore.Folder = Path.Combine(work, "data");
 CoreAdapter.SetLanguage("en");
 PKM Make(SaveFile sav, ushort species)
 {
@@ -130,6 +130,11 @@ vm.Settings.EmulatorScan = true; vm.SaveManager.Folder = emptyLibrary; vm.SaveMa
 vm.CurrentPage = vm.SaveManager; Wait(vm.SaveManager.RefreshAsync()); Shot("emulators");
 vm.Settings.EmulatorScan = false; EmulatorSaves.StorageRoot = null; EmulatorSaves.HasAccess = null; vm.SaveManager.Folder = library; vm.SaveManager.DescribeFolder = () => "Documentos/PKHeX/saves"; vm.SaveManager.RaiseFolder();
 // Temas completos: o Inicio em cada tema (e o Pixel tambem no claro), depois volta ao Padrao.
+// Caçada shiny: Patrat no Black, com encontros contados e a ficha do alvo carregada
+Wait(vm.OpenAsync(black)); vm.CurrentPage = vm.ShinyHunt; vm.ShinyHunt.TargetName = "Patrat";
+vm.ShinyHunt.Step = 1234; vm.ShinyHunt.AddStepCommand.Execute(null);
+for (int i = 0; i < 400 && vm.ShinyHunt.IsLoadingLocations; i++) { Pump(); System.Threading.Thread.Sleep(10); }
+Shot("shinyhunt"); vm.ShinyHunt.NewHuntCommand.Execute(null);
 Wait(vm.OpenAsync(black)); vm.CurrentPage = vm.Home; // a aba do Black (com equipe)
 foreach (var key in new[] { "pss", "pixel", "za", "oras", "kanto" })
 {

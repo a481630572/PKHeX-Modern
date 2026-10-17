@@ -144,6 +144,7 @@ public sealed class HomePageViewModel(Action<PageViewModel> navigate, Action<int
         SearchPageViewModel => "Pokémon de todos os saves e do bank",
         GamePageViewModel => "Flags, recordes, atalhos e editores do jogo",
         BatchPageViewModel => "Alterar vários Pokémon de uma vez",
+        ShinyHuntPageViewModel => "Contador, chances e onde encontrar",
         _ => "",
     };
 

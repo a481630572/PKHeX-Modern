@@ -135,7 +135,8 @@ public sealed partial class MainViewModel : ViewModelBase
         Gifts.PropertyChanged += (_, _) => AddSelectedCardCommand.NotifyCanExecuteChanged();
         Game.PropertyChanged += (_, _) => AddSelectedCardCommand.NotifyCanExecuteChanged();
         var bag = new BagPageViewModel(s => Status = s);
-        AllPages = [Boxes, Party, Bank, Pokedex, new TrainerPageViewModel(), bag, Encounters, Gifts, SaveManager, Game, Search, Batch];
+        ShinyHunt = new ShinyHuntPageViewModel(s => Status = s);
+        AllPages = [Boxes, Party, Bank, Pokedex, new TrainerPageViewModel(), bag, Encounters, Gifts, SaveManager, Game, Search, Batch, ShinyHunt];
         // Atalhos da pagina Jogo podem dar itens (Member Card, Colorful Screws...) e liberar a Pokedex Nacional
         Game.BeforeShortcut = ApplyPendingPages;
         Game.AfterShortcut = () =>
@@ -233,6 +234,8 @@ public sealed partial class MainViewModel : ViewModelBase
     /// <summary>F1 / botao "Ajuda e novidades".</summary>
     public void OpenHelp() => IsHelpOpen = true;
     public PartyPageViewModel Party { get; }
+    /// <summary>Caçada shiny: contador, chances e ficha do alvo (fica no fim da lista; Ctrl+1–9 não mudam).</summary>
+    public ShinyHuntPageViewModel ShinyHunt { get; }
     /// <summary>Tela inicial do save aberto (Ctrl+0); fica fora da lista numerada da barra lateral.</summary>
     public HomePageViewModel Home { get; }
     public RelayCommand GoHomeCommand => _goHome ??= new RelayCommand(() => { if (HasSave) CurrentPage = Home; });
@@ -562,7 +565,7 @@ public sealed partial class MainViewModel : ViewModelBase
         }
     }
     /// <summary>Painel do editor: some nas paginas de lista (Saves, Encontros, Eventos), que usam a largura toda.</summary>
-    public bool ShowEditorPanel => HasSave && CurrentPage != Home && CurrentPage != SaveManager && CurrentPage != Encounters && CurrentPage != Gifts && CurrentPage != Bank && CurrentPage != Pokedex && CurrentPage != Search && CurrentPage != Batch && CurrentPage is not (BagPageViewModel or TrainerPageViewModel or GamePageViewModel) && !IsHelpOpen;
+    public bool ShowEditorPanel => HasSave && CurrentPage != Home && CurrentPage != SaveManager && CurrentPage != Encounters && CurrentPage != Gifts && CurrentPage != Bank && CurrentPage != Pokedex && CurrentPage != Search && CurrentPage != Batch && CurrentPage != ShinyHunt && CurrentPage is not (BagPageViewModel or TrainerPageViewModel or GamePageViewModel) && !IsHelpOpen;
     public bool ShowSlotActions => HasSave && !IsHelpOpen && (CurrentPage == Boxes || CurrentPage == Party);
     public bool ShowGameHistoryActions => HasSave && !IsHelpOpen && UsesGameHistory;
     /// <summary>Jogo e Pokedex desfazem pelo historico do save (flags, valores, Pokedex), nao pelo de slots.</summary>
@@ -994,6 +997,23 @@ public sealed partial class MainViewModel : ViewModelBase
         RaiseSelectionChanged();
         CheckLegalityCommand.NotifyCanExecuteChanged();
         CreateCommand.NotifyCanExecuteChanged();
+        _ = OfferShinyFoundAsync();
+    }
+
+    /// <summary>"Achei!": um shiny novo da espécie da caçada apareceu no save aberto; pergunta se conclui a caçada.</summary>
+    private async Task OfferShinyFoundAsync()
+    {
+        if (ShinyHunt.FindNewShiny() is not { } hit)
+            return;
+        var name = CoreAdapter.SpeciesNames[hit.Pk.Species];
+        var caught = ShinyHuntInfo.CaughtText(hit.Pk);
+        bool finish = await ConfirmAsync("✨ Shiny encontrado!",
+            string.Format(Loc.T("Tem um {0} shiny novo no save ({1}). Concluir a caçada de {2} com {3:N0} encontros?"),
+                name, string.Join(" · ", new[] { hit.Where, caught }.Where(x => x.Length > 0)), ShinyHunt.TargetName, ShinyHunt.Count),
+            "Concluir caçada", "Ainda não", icon: "✨");
+        ShinyHunt.Resolve(hit.Pk, hit.Where, finish);
+        if (finish)
+            Status = string.Format(Loc.T("Caçada de {0} concluída. Parabéns!"), ShinyHunt.TargetName);
     }
 
     /// <summary>

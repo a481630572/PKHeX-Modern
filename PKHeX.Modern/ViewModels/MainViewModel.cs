@@ -397,9 +397,19 @@ public sealed partial class MainViewModel : ViewModelBase
 
     /// <summary>Idiomas da interface (menu "🌐 Idioma" da barra lateral).</summary>
     public IReadOnlyList<LanguageOptionViewModel> LanguageOptions { get; }
-    /// <summary>Botao compacto da barra lateral: "🌐 PT" / "🌐 EN".</summary>
-    public string LanguageShort => "🌐 " + ((Settings.UiLanguage ?? Loc.Portuguese) == Loc.English ? "EN" : "PT");
-    public string LanguageText => "🌐  " + Loc.T("Idioma") + ": " + (LanguageOptions.FirstOrDefault(l => l.IsSelected)?.Code == Loc.English ? "English" : "Português");
+    /// <summary>Botao compacto da barra lateral: "🌐 PT" / "🌐 EN" / "🌐 中".</summary>
+    public string LanguageShort => "🌐 " + (LanguageOptions.FirstOrDefault(l => l.IsSelected)?.Code switch
+    {
+        Loc.English => "EN",
+        Loc.Chinese => "中",
+        _ => "PT",
+    });
+    public string LanguageText => "🌐  " + Loc.T("Idioma") + ": " + (LanguageOptions.FirstOrDefault(l => l.IsSelected)?.Code switch
+    {
+        Loc.English => "English",
+        Loc.Chinese => "中文",
+        _ => "Português",
+    });
     /// <summary>Reiniciar o app (definido pela janela; o mesmo fluxo do Reiniciar da atualizacao).</summary>
     public Func<Task>? RestartAppRequested { get; set; }
 
@@ -415,13 +425,21 @@ public sealed partial class MainViewModel : ViewModelBase
         Raise(nameof(LanguageText));
         Raise(nameof(LanguageShort));
         // A pergunta aparece nos dois idiomas: a tela atual ainda esta no idioma antigo.
-        var restart = code == Loc.English
-            ? await ConfirmAsync("Restart to switch to English?", "The interface language changes when the app restarts. Game names (species, moves, items) stay in English.\n\nA interface muda de idioma ao reiniciar o app.", "Restart now", cancelText: "Later", icon: "🌐")
-            : await ConfirmAsync("Reiniciar para usar Português?", "O idioma da interface muda ao reiniciar o app. Nomes do jogo (espécies, golpes, itens) continuam em inglês.\n\nThe interface language changes when the app restarts.", "Reiniciar agora", cancelText: "Depois", icon: "🌐");
+        var restart = code switch
+        {
+            Loc.English => await ConfirmAsync("Restart to switch to English?", "The interface language changes when the app restarts. Game names (species, moves, items) stay in English.\n\nA interface muda de idioma ao reiniciar o app.", "Restart now", cancelText: "Later", icon: "🌐"),
+            Loc.Chinese => await ConfirmAsync("重启以切换到中文?", "界面语言将在重启应用后生效。游戏内的名称（宝可梦、招式、道具）保持英文。\n\nThe interface language changes when the app restarts.", "立即重启", cancelText: "稍后", icon: "🌐"),
+            _ => await ConfirmAsync("Reiniciar para usar Português?", "O idioma da interface muda ao reiniciar o app. Nomes do jogo (espécies, golpes, itens) continuam em inglês.\n\nThe interface language changes when the app restarts.", "Reiniciar agora", cancelText: "Depois", icon: "🌐"),
+        };
         if (restart && RestartAppRequested is { } run)
             await run();
         else
-            Status = code == Loc.English ? "Language set to English: it takes effect the next time you open the app." : "Idioma definido para Português: vale na próxima vez que abrir o app.";
+            Status = code switch
+            {
+                Loc.English => "Language set to English: it takes effect the next time you open the app.",
+                Loc.Chinese => "语言已设置为中文：下次打开应用时生效。",
+                _ => "Idioma definido para Português: vale na próxima vez que abrir o app.",
+            };
     }
     public RelayCommand SetAccentCommand { get; }
 

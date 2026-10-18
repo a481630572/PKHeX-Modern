@@ -19,9 +19,10 @@ public static class Loc
 {
     public const string Portuguese = "pt-BR";
     public const string English = "en";
+    public const string Chinese = "zh";
 
     /// <summary>Idiomas oferecidos no seletor (codigo, nome no proprio idioma).</summary>
-    public static IReadOnlyList<(string Code, string Name)> Languages { get; } = [(Portuguese, "Português (Brasil)"), (English, "English")];
+    public static IReadOnlyList<(string Code, string Name)> Languages { get; } = [(Portuguese, "Português (Brasil)"), (English, "English"), (Chinese, "中文 (简体)")];
 
     public static string Current { get; private set; } = Portuguese;
     public static bool IsTranslating => _exact.Count > 0;

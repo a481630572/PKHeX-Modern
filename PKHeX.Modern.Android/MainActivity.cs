@@ -135,6 +135,7 @@ public sealed class MainActivity : AvaloniaMainActivity<App>
             [
                 new FontFallback { FontFamily = new FontFamily("avares://PKHeX.Modern.UI/Assets/Fonts#Noto Sans Symbols 2") },
                 new FontFallback { FontFamily = new FontFamily("avares://PKHeX.Modern.UI/Assets/Fonts#Noto Emoji") },
+                new FontFallback { FontFamily = new FontFamily("avares://PKHeX.Modern.UI/Assets/Fonts#Noto Sans CJK SC") },
             ],
         });
 }
